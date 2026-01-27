@@ -4,6 +4,8 @@ const ASSETS_TO_CACHE = [
 
   './index.html',
 
+  './styles.css',
+
   './manifest.json',
 
   // Librerías externas (CDNs) vitales para que funcione offline

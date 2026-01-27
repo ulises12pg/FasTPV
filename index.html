@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CronoSysPOS v2.1</title>
+    <title>FasTPV</title>
     
     <!-- 1. Estilos (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,36 +21,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        body { user-select: none; } 
-        .barcode-scan { animation: scanLine 2s infinite linear; }
-        @keyframes scanLine { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-        
-        /* Animaciones */
-        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .msg-anim { animation: slideInUp 0.3s ease-out forwards; }
-        
-        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-anim { animation: zoomIn 0.2s ease-out forwards; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .fade-anim { animation: fadeIn 0.2s ease-out forwards; }
-        
-        /* Animación Alarma */
-        @keyframes alarmFlash {
-            0% { background-color: #fee2e2; }
-            50% { background-color: #ef4444; color: white; }
-            100% { background-color: #fee2e2; }
-        }
-        .alarm-active { animation: alarmFlash 1s infinite; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <!-- FONDO GRIS PLATEADO OSCURO -->
-<body class="bg-slate-300">
+<body class="bg-[#f2f2f7] dark:bg-[#1c1c1e] text-slate-900 dark:text-slate-100 selection:bg-blue-500 selection:text-white transition-colors duration-300">
     <div id="root"></div>
 
     <!-- 4. TU CÓDIGO DEL SISTEMA -->
@@ -59,14 +33,8 @@
         
         // --- CONSTANTES ---
 // Utilizamos window para almacenar variables globales solo si no existen aún, evitando redeclaración
-window.EMPRESA = window.EMPRESA || "CIBER CENTRO PROGRESO";
-window.RFC = window.RFC || "PEGU911012KC3";
-window.REGIMEN = window.REGIMEN || "Régimen Simplificado de Confianza";
-window.DIRECCION = window.DIRECCION || "Plaza Principal 6, Progreso C.P. 42987";
-window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
-        // Utilizamos window para almacenar variables globales solo si no existen aún, evitando redeclaración
-        window.SISTEMA = window.SISTEMA || "v2.2";
-        window.COLOR_CORP = window.COLOR_CORP || "bg-slate-900";
+        window.SISTEMA = window.SISTEMA || "FasTPV v1.0";
+        window.COLOR_CORP = window.COLOR_CORP || "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300";
         window.RATIO_PUNTOS = window.RATIO_PUNTOS || 10;
         
         // --- SONIDOS DEL SISTEMA ---
@@ -116,7 +84,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
         };
 
         // --- ADAPTADOR DE ICONOS LUCIDE ---
-        const LucideIconWrapper = ({ name, size = 24, className = "", ...props }) => {
+        const LucideIconWrapper = React.memo(({ name, size = 24, className = "", ...props }) => {
             const ref = useRef(null);
             useEffect(() => {
                 if (ref.current && window.lucide) {
@@ -134,7 +102,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                 }
             }, [name, size, className]);
             return <span ref={ref} style={{ display: 'inline-flex', verticalAlign: 'middle' }} {...props}></span>;
-        };
+        });
 
         const iconNames = [
             'Monitor', 'Gamepad2', 'Play', 'Pause', 'Square', 'Coffee', 'Printer', 'X', 
@@ -142,35 +110,13 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             'Percent', 'Save', 'Package', 'Trash2', 'Edit2', 'AlertTriangle', 'AlertCircle',
             'Settings', 'Wifi', 'Smartphone', 'UserPlus', 'Star', 'Trophy', 'ArrowRightLeft', 
             'Ban', 'Lock', 'LogOut', 'Truck', 'ScanBarcode', 'UserCog', 'Shield',
-            'Sparkles', 'Bot', 'Send', 'MessageSquare', 'Clock', 'Timer', 'Bell', 'Key', 'FileText', 'Bluetooth', 'Camera', 'CameraOff', 'QrCode', 'Droplet', 'ChevronRight', 'CircleDollarSign', 'RotateCcw', 'Store', 'HandHelping', 'Database', 'Download', 'Upload', 'Wallet'
+            'Clock', 'Timer', 'Bell', 'Key', 'FileText', 'Bluetooth', 'Camera', 'CameraOff', 'QrCode', 'Droplet', 'ChevronRight', 'CircleDollarSign', 'RotateCcw', 'Store', 'HandHelping', 'Database', 'Download', 'Upload', 'Wallet',
+            'Info', 'MapPin', 'Building'
         ];
 
         const Icons = {};
         iconNames.forEach(name => { Icons[name] = (props) => <LucideIconWrapper name={name} {...props} />; });
-        const { Monitor, Gamepad2, Play, Pause, Square, Coffee, X, ShoppingBag, Users, Ticket, PlusCircle, CheckCircle, Package, Trash2, Edit2, Settings, Ban, Lock, LogOut, Truck, ScanBarcode, UserCog, Shield, Sparkles, Bot, Send, Clock, Timer, Bell, Trophy, ArrowRightLeft, Key, Save, Printer, FileText, Bluetooth, Camera, CameraOff, QrCode, Droplet, ChevronRight, CircleDollarSign, RotateCcw, Store, Wifi, HandHelping, UserPlus, Database, Download, Upload, AlertTriangle, Wallet } = Icons;
-
-        // --- CONSTANTES ---
-        const EMPRESA = "Ciber Centro Progreso";
-        const SISTEMA = "v2.1";
-        const COLOR_CORP = "bg-slate-900"; 
-        const RATIO_PUNTOS = 10; // $1 peso = 10 puntos
-
-        // --- CONFIGURACION SERVICIOS ---
-        const PRECIOS_IMPRESION = {
-            'IMPRESION_BN': { 'B': 2.00, 'M': 5.00, 'G': 8.00 },
-            'IMPRESION_COLOR': { 'B': 3.00, 'M': 7.00, 'G': 12.00 }
-        };
-        const MODIFICADOR_TAMANO = {
-            'CARTA': { op: 'add', val: 0 },
-            'OFICIO': { op: 'add', val: 1 },
-            'TABLOIDE': { op: 'mult', val: 2 }
-        };
-        const OTROS_SERVICIOS = {
-            'ESCANEO': { 'CARTA': 4, 'OFICIO': 5 },
-            'ENVIO': { 'GENERAL': 5 },
-            'WIFI': { 'GENERAL': 10 },
-            'ASESORIA': { 'GENERAL': 15 }
-        };
+        const { Monitor, Gamepad2, Play, Pause, Square, Coffee, X, ShoppingBag, Users, Ticket, PlusCircle, CheckCircle, Package, Trash2, Edit2, Settings, Ban, Lock, LogOut, Truck, ScanBarcode, UserCog, Shield, Clock, Timer, Bell, Trophy, ArrowRightLeft, Key, Save, Printer, FileText, Bluetooth, Camera, CameraOff, QrCode, Droplet, ChevronRight, CircleDollarSign, RotateCcw, Store, Wifi, HandHelping, UserPlus, Database, Download, Upload, AlertTriangle, Wallet, DollarSign, Percent, AlertCircle, Smartphone, Star, Info, MapPin, Building } = Icons;
 
         // --- DATOS INICIALES ---
         const USUARIOS_DEFAULT = [
@@ -192,11 +138,39 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
         ];
         const CONFIG_INICIAL = {
             tarifaMinima: 5.00,
-            formatoTicket: '58mm' // '58mm' o 'LETTER'
+            formatoTicket: '58mm', // '58mm' o 'LETTER'
+            negocio: {
+                nombre: "FasTPV Generic",
+                rfc: "XAXX010101000",
+                regimen: "Régimen General de Ley",
+                direccion: "Calle Conocida S/N, Centro",
+                lugarExpedicion: "México"
+            },
+            ticketConfig: {
+                headers: { cant: 'Cant', desc: 'Desc', pu: 'P.U.', importe: 'Importe' },
+                separador: '-',
+                mensajeFinal: '¡Gracias por su preferencia!'
+            },
+            precios: {
+                impresion: {
+                    bn: { B: 2.00, M: 5.00, G: 8.00 },
+                    color: { B: 3.00, M: 7.00, G: 12.00 }
+                },
+                extras: {
+                    oficio: 1.00, // Se suma
+                    tabloide: 2.00 // Se multiplica
+                },
+                otros: {
+                    escaneo: { carta: 4.00, oficio: 5.00 },
+                    envio: 5.00,
+                    wifi: 10.00,
+                    asesoria: 15.00
+                }
+            }
         };
 
         // --- COMPONENTE LOGIN ---
-        const LoginScreen = ({ onLogin, usuarios }) => {
+        const LoginScreen = ({ onLogin, usuarios, empresa }) => {
             const [pin, setPin] = useState('');
             const [error, setError] = useState(false);
 
@@ -216,13 +190,14 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             };
 
             return (
-                <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100]">
-                    <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm modal-anim">
+                <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 backdrop-blur-3xl"></div>
+                    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl p-8 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] w-full max-w-sm modal-anim border border-white/40 dark:border-white/10 relative z-10 transition-colors">
                         <div className="text-center mb-6">
-                            <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Lock className="text-slate-700" size={32} />
+                            <div className="bg-white/50 dark:bg-white/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner transition-colors">
+                                <Lock className="text-slate-700/80 dark:text-slate-200/80" size={32} />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-800">{EMPRESA}</h2>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{empresa}</h2>
                             <p className="text-slate-400 text-sm">Sistema de Control</p>
                         </div>
                         
@@ -235,7 +210,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                     setError(false);
                                 }}
                                 onKeyDown={handleKeyDown}
-                                className={`w-full text-center text-3xl tracking-[1em] border-b-2 py-2 focus:outline-none focus:border-indigo-600 bg-transparent transition-all ${error ? 'border-rose-500 text-rose-500' : 'border-slate-300 text-slate-800'}`}
+                                className={`w-full text-center text-3xl tracking-[1em] border-b border-slate-300/50 dark:border-slate-600/50 py-2 focus:outline-none focus:border-blue-500 bg-transparent transition-all ${error ? 'border-rose-500 text-rose-500' : 'text-slate-800 dark:text-white'}`}
                                 placeholder="••••"
                                 autoFocus
                             />
@@ -243,11 +218,11 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                         <div className="grid grid-cols-3 gap-4 mb-4">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                                <button key={n} onClick={() => handleNum(n)} className="h-14 rounded-xl bg-slate-50 border-b-4 border-slate-200 active:border-b-0 active:translate-y-1 font-bold text-xl text-slate-700 hover:bg-slate-100 transition-all">{n}</button>
+                                <button key={n} onClick={() => handleNum(n)} className="h-14 rounded-2xl bg-white/50 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/50 dark:border-white/10 shadow-sm active:scale-95 font-medium text-xl text-slate-700 dark:text-slate-200 transition-all">{n}</button>
                             ))}
-                            <button onClick={handleClear} className="h-14 rounded-xl bg-rose-50 text-rose-600 font-bold border-b-4 border-rose-100 active:border-b-0 active:translate-y-1 hover:bg-rose-100">C</button>
-                            <button onClick={() => handleNum(0)} className="h-14 rounded-xl bg-slate-50 border-b-4 border-slate-200 active:border-b-0 active:translate-y-1 font-bold text-xl text-slate-700 hover:bg-slate-100">{0}</button>
-                            <button onClick={handleSubmit} className="h-14 rounded-xl bg-indigo-600 text-white font-bold border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1 hover:bg-indigo-700 flex justify-center items-center"><ArrowRightLeft size={20} /></button>
+                            <button onClick={handleClear} className="h-14 rounded-2xl bg-rose-50/50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-100/50 dark:border-rose-900/40 active:scale-95 transition-all">C</button>
+                            <button onClick={() => handleNum(0)} className="h-14 rounded-2xl bg-white/50 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 border border-white/50 dark:border-white/10 shadow-sm active:scale-95 font-medium text-xl text-slate-700 dark:text-slate-200 transition-all">{0}</button>
+                            <button onClick={handleSubmit} className="h-14 rounded-2xl bg-blue-500 text-white font-bold hover:bg-blue-600 shadow-lg shadow-blue-500/30 active:scale-95 flex justify-center items-center transition-all"><ArrowRightLeft size={20} /></button>
                         </div>
                         {error && <p className="text-center text-rose-500 text-sm font-bold animate-pulse">PIN Incorrecto</p>}
                     </div>
@@ -269,7 +244,46 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             const [clientes, setClientes] = useState(() => JSON.parse(localStorage.getItem('sys-clientes')) || CLIENTES_INICIALES);
             
             // CONFIG Y CAJA
-            const [config, setConfig] = useState(() => JSON.parse(localStorage.getItem('sys-config')) || CONFIG_INICIAL);
+            const [config, setConfig] = useState(() => {
+                try {
+                    const saved = JSON.parse(localStorage.getItem('sys-config'));
+                    // Merge profundo básico para asegurar que existan los precios si la config es antigua
+                    const base = { ...CONFIG_INICIAL };
+                    if (saved) {
+                        base.tarifaMinima = saved.tarifaMinima ?? base.tarifaMinima;
+                        base.formatoTicket = saved.formatoTicket ?? base.formatoTicket;
+                        if (saved.negocio) {
+                            base.negocio = { ...base.negocio, ...saved.negocio };
+                        }
+                        if (saved.ticketConfig) {
+                            base.ticketConfig = { 
+                                ...base.ticketConfig, 
+                                ...saved.ticketConfig,
+                                headers: { ...base.ticketConfig.headers, ...(saved.ticketConfig.headers || {}) }
+                            };
+                        }
+                        if (saved.precios) {
+                            // Merge profundo seguro para evitar errores si faltan claves en la config guardada
+                            base.precios = {
+                                ...base.precios,
+                                ...saved.precios,
+                                impresion: {
+                                    ...base.precios.impresion,
+                                    ...(saved.precios.impresion || {}),
+                                    bn: { ...base.precios.impresion.bn, ...(saved.precios.impresion?.bn || {}) },
+                                    color: { ...base.precios.impresion.color, ...(saved.precios.impresion?.color || {}) }
+                                },
+                                extras: { ...base.precios.extras, ...(saved.precios.extras || {}) },
+                                otros: { ...base.precios.otros, ...(saved.precios.otros || {}) }
+                            };
+                        }
+                    }
+                    return base;
+                } catch (e) {
+                    console.error("Error cargando config", e);
+                    return { ...CONFIG_INICIAL };
+                }
+            });
             const [caja, setCaja] = useState(() => JSON.parse(localStorage.getItem('sys-caja')) || { activa: false, fondo: 0, inicio: null });
 
             // NUEVO STATE: CARRITO DE VENTA DIRECTA
@@ -292,13 +306,6 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             // Estado para servicios (Impresiones, etc)
             const [servicioForm, setServicioForm] = useState({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 });
             const [manualItemForm, setManualItemForm] = useState({ nombre: '', precio: '' });
-
-            // Chat AI
-            const [chatAbierto, setChatAbierto] = useState(false);
-            const [mensajesChat, setMensajesChat] = useState([{ role: 'model', text: '¡Hola! Soy tu Asistente Técnico Virtual. 🤖 Puedo ayudarte con dudas sobre precios, internet lento, impresoras, etc. ¿En qué te ayudo?' }]);
-            const [inputChat, setInputChat] = useState('');
-            const [cargandoAI, setCargandoAI] = useState(false);
-            const chatEndRef = useRef(null);
 
             // Forms
             const [itemForm, setItemForm] = useState({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' });
@@ -362,8 +369,6 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                 return () => clearInterval(interval);
             }, []);
 
-            useEffect(() => { if (chatAbierto && chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' }); }, [mensajesChat, chatAbierto]);
-
             // --- CAMERA ---
             useEffect(() => {
                 if (showCamera && (modalAbierto === 'inventario')) {
@@ -386,31 +391,6 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                     try { await html5QrCodeRef.current.stop(); html5QrCodeRef.current.clear(); } catch(e) {}
                     html5QrCodeRef.current = null;
                 }
-            };
-
-            // --- AI SIMULADA ---
-            const enviarMensajeIA = async () => {
-                if(!inputChat.trim()) return;
-                const textoUsuario = inputChat;
-                setMensajesChat(prev => [...prev, { role: 'user', text: textoUsuario }]);
-                setInputChat('');
-                setCargandoAI(true);
-                
-                setTimeout(() => {
-                    let respuesta = "Disculpa, no entendí tu pregunta. Intenta con palabras clave como 'precio', 'internet', 'impresora' o 'corte'.";
-                    const q = textoUsuario.toLowerCase();
-                    
-                    if (q.includes('hola') || q.includes('buen')) respuesta = "¡Hola! ¿En qué puedo apoyarte hoy en el Ciber?";
-                    else if (q.includes('precio') || q.includes('cuanto') || q.includes('costo')) respuesta = "Precios actuales:\n- Renta PC: $15/hr\n- Consolas: $20/hr\n- Impresiones B/N: $2\n- Color: $3+";
-                    else if (q.includes('lento') || q.includes('internet') || q.includes('wifi')) respuesta = "Si el internet está lento:\n1. Reinicia el módem (espera 10 seg).\n2. Verifica si alguien está descargando archivos grandes.\n3. Checa los cables de red.";
-                    else if (q.includes('impresora') || q.includes('atorada') || q.includes('tinta')) respuesta = "Problemas de impresión:\n- Revisa si hay papel.\n- Verifica si hay papel atorado.\n- Checa los niveles de tinta en el panel de la impresora.";
-                    else if (q.includes('corte') || q.includes('caja') || q.includes('dinero')) respuesta = "Para hacer corte de caja, utiliza el botón de 'Caja' (icono de billete) en la barra superior. Podrás ver las ventas del turno actual.";
-                    else if (q.includes('ticket') || q.includes('formato')) respuesta = "Puedes cambiar el formato del ticket (Térmico/Carta) en el botón de Configuración (engranaje) en la parte superior.";
-                    else if (q.includes('gracias')) respuesta = "¡De nada! Estoy para servirte.";
-
-                    setMensajesChat(prev => [...prev, { role: 'model', text: respuesta }]);
-                    setCargandoAI(false);
-                }, 800);
             };
 
             // --- BARCODE ---
@@ -449,6 +429,29 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                 }
             };
 
+            // --- HELPER: CALCULADORA DE PRECIOS DINÁMICA ---
+            const calcularPrecio = useCallback((tipo, tamano, cobertura, cantidad) => {
+                const p = config.precios;
+                let unitario = 0;
+                if (tipo === 'IMPRESION_BN') {
+                    const base = p.impresion.bn[cobertura] || 0;
+                    if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
+                    else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
+                    else unitario = base;
+                } else if (tipo === 'IMPRESION_COLOR') {
+                    const base = p.impresion.color[cobertura] || 0;
+                    if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
+                    else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
+                    else unitario = base;
+                } else if (tipo === 'ESCANEO') unitario = tamano === 'OFICIO' ? p.otros.escaneo.oficio : p.otros.escaneo.carta;
+                else if (tipo === 'ENVIO') unitario = p.otros.envio;
+                else if (tipo === 'WIFI') unitario = p.otros.wifi;
+                else if (tipo === 'ASESORIA') unitario = p.otros.asesoria;
+
+                if (cantidad > 10 && tipo !== 'WIFI' && tipo !== 'ASESORIA') unitario *= 0.90;
+                return unitario;
+            }, [config]);
+
             // --- HELPERS ---
             const getEquipoActual = () => equipos.find(e => e.id === equipoSeleccionadoId) || { nombre: 'Desconocido', cuenta: [] };
             const calcularTiempo = (eq) => {
@@ -461,6 +464,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             // --- CALCULO DE RENTA CON MINIMO ---
             const calcularTotalRenta = (eq) => {
                 if (!eq || eq.tipo === 'DIRECTA') return 0;
+                if (eq.modo === 'prepago') return 0; // El prepago ya se cobró al inicio
                 const tiempoMs = eq.estado === 'finalizado' ? eq.tiempoAcumulado : calcularTiempo(eq);
                 const horas = tiempoMs / 3600000;
                 const tarifa = parseFloat(eq.precioHora);
@@ -472,6 +476,17 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                 }
                 
                 return Math.max(total, 0);
+            };
+
+            // --- HELPER: VERIFICAR CAJA ---
+            const verificarCaja = () => {
+                if (!caja.activa) {
+                    playSound('warning');
+                    alert("⚠️ DEBES INICIAR TURNO EN CAJA PRIMERO\n\nAntes de realizar cualquier operación, ingresa el fondo inicial.");
+                    setModalAbierto('caja');
+                    return false;
+                }
+                return true;
             };
 
             // --- GESTIÓN CAJA ---
@@ -575,6 +590,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
             // --- LOGICA VENTA DIRECTA (MOSTRADOR) ---
             const abrirVentaDirecta = () => {
+                if (!verificarCaja()) return;
                 setCarritoDirecto([]);
                 setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 });
                 setVentaDirectaClienteId(1); 
@@ -590,21 +606,19 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
             const agregarServicioDirecto = () => {
                  const { tipo, tamano, cobertura, cantidad } = servicioForm;
-                let precioUnitario = 0;
+                const precioUnitario = calcularPrecio(tipo, tamano, cobertura, 1); // Precio base unitario sin descuento cantidad para mostrar
                 let nombreServicio = '';
-                if (tipo === 'ENVIO') { precioUnitario = OTROS_SERVICIOS['ENVIO']['GENERAL']; nombreServicio = `Envío Digital`; } 
-                else if (tipo === 'ESCANEO') { precioUnitario = OTROS_SERVICIOS['ESCANEO'][tamano]; nombreServicio = `Escaneo ${tamano}`; }
-                else if (tipo === 'WIFI') { precioUnitario = OTROS_SERVICIOS['WIFI']['GENERAL']; nombreServicio = 'Acceso WiFi (Dispositivo)'; }
-                else if (tipo === 'ASESORIA') { precioUnitario = OTROS_SERVICIOS['ASESORIA']['GENERAL']; nombreServicio = 'Asesoría / Apoyo Técnico'; }
-                else {
-                    const base = PRECIOS_IMPRESION[tipo][cobertura];
-                    const mod = MODIFICADOR_TAMANO[tamano];
-                    precioUnitario = mod.op === 'add' ? base + mod.val : base * mod.val;
-                    nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
-                }
-                if (cantidad > 10 && tipo !== 'WIFI' && tipo !== 'ASESORIA') precioUnitario *= 0.90;
+                if (tipo === 'ENVIO') nombreServicio = `Envío Digital`;
+                else if (tipo === 'ESCANEO') nombreServicio = `Escaneo ${tamano}`;
+                else if (tipo === 'WIFI') nombreServicio = 'Acceso WiFi (Dispositivo)';
+                else if (tipo === 'ASESORIA') nombreServicio = 'Asesoría / Apoyo Técnico';
+                else nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
                 
-                setCarritoDirecto(prev => [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioUnitario), cantidad: parseInt(cantidad) || 1 }]);
+                // El precio final con descuento se calcula al insertar o se guarda el unitario y se aplica lógica. 
+                // Para consistencia con el sistema actual, guardamos el precio unitario FINAL (con descuento si aplica)
+                const precioFinal = calcularPrecio(tipo, tamano, cobertura, cantidad);
+                
+                setCarritoDirecto(prev => [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }]);
                 setServicioForm({ ...servicioForm, cantidad: 1 });
                 playSound('success');
             };
@@ -738,21 +752,16 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
             const agregarServicioACuenta = () => {
                 const { tipo, tamano, cobertura, cantidad } = servicioForm;
-                let precioUnitario = 0;
+                const precioFinal = calcularPrecio(tipo, tamano, cobertura, cantidad);
                 let nombreServicio = '';
-                if (tipo === 'ENVIO') { precioUnitario = OTROS_SERVICIOS['ENVIO']['GENERAL']; nombreServicio = `Envío Digital`; } 
-                else if (tipo === 'ESCANEO') { precioUnitario = OTROS_SERVICIOS['ESCANEO'][tamano]; nombreServicio = `Escaneo ${tamano}`; } 
-                else if (tipo === 'WIFI') { precioUnitario = OTROS_SERVICIOS['WIFI']['GENERAL']; nombreServicio = 'Acceso WiFi (Dispositivo)'; }
-                else if (tipo === 'ASESORIA') { precioUnitario = OTROS_SERVICIOS['ASESORIA']['GENERAL']; nombreServicio = 'Asesoría / Apoyo Técnico'; }
-                else {
-                    const base = PRECIOS_IMPRESION[tipo][cobertura];
-                    const mod = MODIFICADOR_TAMANO[tamano];
-                    precioUnitario = mod.op === 'add' ? base + mod.val : base * mod.val;
-                    nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
-                }
-                if (cantidad > 10 && tipo !== 'WIFI' && tipo !== 'ASESORIA') precioUnitario *= 0.90;
+                if (tipo === 'ENVIO') nombreServicio = `Envío Digital`;
+                else if (tipo === 'ESCANEO') nombreServicio = `Escaneo ${tamano}`;
+                else if (tipo === 'WIFI') nombreServicio = 'Acceso WiFi (Dispositivo)';
+                else if (tipo === 'ASESORIA') nombreServicio = 'Asesoría / Apoyo Técnico';
+                else nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
+
                 setEquipos(prev => prev.map(eq => {
-                    if (eq.id === equipoSeleccionadoId) return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioUnitario), cantidad: parseInt(cantidad) || 1 }] };
+                    if (eq.id === equipoSeleccionadoId) return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }] };
                     return eq;
                 }));
                 setServicioForm({ ...servicioForm, cantidad: 1 });
@@ -760,8 +769,12 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             const eliminarProductoDeCuenta = (uid) => { setEquipos(prev => prev.map(e => e.id === equipoSeleccionadoId ? { ...e, cuenta: e.cuenta.filter(i => i.uid !== uid) } : e)); };
 
             // --- ACCIONES ---
-            const iniciarTiempoLibre = (id) => { setEquipos(prev => prev.map(eq => eq.id === id ? { ...eq, estado: 'ocupado', inicio: Date.now(), modo: 'libre', limiteTiempo: 0, alertaMinuto: false } : eq)); };
+            const iniciarTiempoLibre = (id) => { 
+                if (!verificarCaja()) return;
+                setEquipos(prev => prev.map(eq => eq.id === id ? { ...eq, estado: 'ocupado', inicio: Date.now(), modo: 'libre', limiteTiempo: 0, alertaMinuto: false } : eq)); 
+            };
             const togglePausa = (id) => {
+                if (!verificarCaja()) return;
                 setEquipos(prev => prev.map(eq => {
                     if (eq.id === id) {
                         if (eq.estado === 'ocupado') return { ...eq, estado: 'pausado', tiempoAcumulado: eq.tiempoAcumulado + (Date.now() - eq.inicio), inicio: null };
@@ -770,18 +783,53 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                     return eq;
                 }));
             };
-            const abrirPrepago = (id) => { setEquipoSeleccionadoId(id); setPrepagoData({ dinero: '', minutos: '' }); setModalAbierto('prepago'); };
+            const abrirPrepago = (id) => { 
+                if (!verificarCaja()) return;
+                setEquipoSeleccionadoId(id); setPrepagoData({ dinero: '', minutos: '' }); setModalAbierto('prepago'); 
+            };
+            
             const aplicarPrepago = () => {
                 const eq = getEquipoActual();
                 let ms = 0;
-                if (prepagoData.dinero) ms = (parseFloat(prepagoData.dinero) / eq.precioHora) * 3600000;
-                else if (prepagoData.minutos) ms = parseInt(prepagoData.minutos) * 60000;
-                if (ms > 0) { setEquipos(prev => prev.map(e => e.id === eq.id ? { ...e, estado: 'ocupado', inicio: Date.now(), modo: 'prepago', limiteTiempo: ms, tiempoAcumulado: 0, alertaMinuto: false } : e)); setModalAbierto(null); } 
+                let totalCobrado = 0;
+
+                if (prepagoData.dinero) {
+                    totalCobrado = parseFloat(prepagoData.dinero);
+                    ms = (totalCobrado / eq.precioHora) * 3600000;
+                } else if (prepagoData.minutos) {
+                    const mins = parseInt(prepagoData.minutos);
+                    ms = mins * 60000;
+                    totalCobrado = (mins / 60) * eq.precioHora;
+                }
+
+                if (ms > 0) { 
+                    setEquipos(prev => prev.map(e => e.id === eq.id ? { ...e, estado: 'ocupado', inicio: Date.now(), modo: 'prepago', limiteTiempo: ms, tiempoAcumulado: 0, alertaMinuto: false } : e)); 
+                    
+                    // Generar Ticket y Venta de inmediato (Cobro Anticipado)
+                    const venta = { 
+                        id: Date.now(), 
+                        fecha: new Date().toISOString(), 
+                        equipo: eq.nombre, 
+                        cliente: "Cliente General", 
+                        total: totalCobrado, 
+                        puntosGanados: 0, 
+                        productos: [{ nombre: `Renta Prepago (${(ms/60000).toFixed(0)} min)`, precio: totalCobrado, cantidad: 1 }], 
+                        subtotalRenta: 0, // Se pone en productos para descripción clara
+                        pagoCon: totalCobrado, 
+                        cambio: 0,
+                        atendio: usuarioActual.nombre 
+                    };
+                    setVentas(prev => [...prev, venta]);
+                    generarTicket(venta, config.formatoTicket || '58mm');
+                    playSound('success');
+                    setModalAbierto(null); 
+                } 
                 else alert("Inválido");
             };
             
             // --- CANCELAR SERVICIO (MODAL) ---
             const cancelarServicio = (id) => {
+                if (!verificarCaja()) return;
                 setConfirmarResetId(id);
             };
 
@@ -808,7 +856,10 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             };
 
             // --- INTERCAMBIO ---
-            const iniciarIntercambio = (id) => { setEquipoSeleccionadoId(id); setModalAbierto('intercambio'); };
+            const iniciarIntercambio = (id) => { 
+                if (!verificarCaja()) return;
+                setEquipoSeleccionadoId(id); setModalAbierto('intercambio'); 
+            };
             const confirmarIntercambio = (idDestino) => {
                 setEquipos(prev => {
                     const origen = prev.find(e => e.id === equipoSeleccionadoId);
@@ -869,6 +920,10 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                 if (!window.jspdf) return alert("Error PDF");
                 try {
                     const { jsPDF } = window.jspdf;
+                    const negocio = config.negocio || CONFIG_INICIAL.negocio;
+                    const tConfig = config.ticketConfig || CONFIG_INICIAL.ticketConfig;
+                    const sepChar = tConfig.separador || '-';
+                    const separator = sepChar.repeat(40);
                     
                     // Cálculos Fiscales (Desglosar IVA del Total)
                     // Total = Base * 1.16  =>  Base = Total / 1.16
@@ -895,13 +950,13 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                         // Encabezado Fiscal
                         doc.setFontSize(14);
                         doc.setFont("helvetica", "bold");
-                        doc.text(EMPRESA, 105, 20, { align: 'center' });
+                        doc.text(negocio.nombre, 105, 20, { align: 'center' });
                         
                         doc.setFontSize(10);
                         doc.setFont("helvetica", "normal");
-                        doc.text(`RFC: ${RFC}`, 105, 26, { align: 'center' });
-                        doc.text(REGIMEN, 105, 31, { align: 'center' });
-                        doc.text(`Lugar de expedición: ${DIRECCION}`, 105, 36, { align: 'center' });
+                        doc.text(`RFC: ${negocio.rfc}`, 105, 26, { align: 'center' });
+                        doc.text(negocio.regimen, 105, 31, { align: 'center' });
+                        doc.text(`Lugar de expedición: ${negocio.direccion}`, 105, 36, { align: 'center' });
 
                         // Datos de la Operación
                         doc.setDrawColor(200);
@@ -940,14 +995,14 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                         doc.autoTable({
                             startY: 65,
-                            head: [['Cant.', 'Desc.', 'P.Unit', 'Imp.']],
+                            head: [[tConfig.headers.cant, tConfig.headers.desc, tConfig.headers.pu, tConfig.headers.importe]],
                             body: tableData,
                             theme: 'plain',
                             styles: { fontSize: 10, cellPadding: 2 },
                             headStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: 'bold', halign: 'center' },
                             columnStyles: {
                                 0: { halign: 'center' }, // Cant
-                                2: { halign: 'right' },  // Unit
+                                2: { halign: 'right' },  // PU
                                 3: { halign: 'right' }   // Importe
                             }
                         });
@@ -998,20 +1053,20 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                         // Encabezado
                         doc.setFont("helvetica", "bold"); 
                         doc.setFontSize(9);
-                        doc.text(EMPRESA, centerX, y, { align: 'center', maxWidth: 54 }); 
+                        doc.text(negocio.nombre, centerX, y, { align: 'center', maxWidth: 54 }); 
                         // Ajuste manual de salto de línea si el nombre es largo
-                        y += (doc.getTextDimensions(EMPRESA).h) + 3;
+                        y += (doc.getTextDimensions(negocio.nombre).h) + 3;
 
                         doc.setFont("helvetica", "normal");
                         doc.setFontSize(7);
-                        doc.text(`RFC: ${RFC}`, centerX, y, { align: 'center' }); y+=4;
-                        doc.text(REGIMEN, centerX, y, { align: 'center', maxWidth: 54 }); 
-                        y += (doc.getTextDimensions(REGIMEN).h) + 1; // Salto dinámico
+                        doc.text(`RFC: ${negocio.rfc}`, centerX, y, { align: 'center' }); y+=4;
+                        doc.text(negocio.regimen, centerX, y, { align: 'center', maxWidth: 54 }); 
+                        y += (doc.getTextDimensions(negocio.regimen).h) + 1; // Salto dinámico
                         
-                        doc.text(DIRECCION, centerX, y, { align: 'center', maxWidth: 54 });
-                        y += (doc.getTextDimensions(DIRECCION).h) + 3;
+                        doc.text(negocio.direccion, centerX, y, { align: 'center', maxWidth: 54 });
+                        y += (doc.getTextDimensions(negocio.direccion).h) + 3;
 
-                        doc.text("-".repeat(40), margin, y); y+=4;
+                        doc.text(separator, margin, y); y+=4;
                         
                         // Datos Ticket
                         doc.text(`Folio: ${folioFiscal}`, margin, y); y+=4;
@@ -1020,14 +1075,21 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                         // Encabezados Tabla
                         doc.setFont("helvetica", "bold");
-                        doc.text("Cant  Desc           Importe", margin, y); y+=4;
+                        // Distribución manual para 58mm: Cant(2), Desc(10), PU(42-Right), Imp(56-Right)
+                        doc.text(tConfig.headers.cant, 2, y);
+                        doc.text(tConfig.headers.desc, 10, y);
+                        doc.text(tConfig.headers.pu, 42, y, { align: 'right' });
+                        doc.text(tConfig.headers.importe, rightX, y, { align: 'right' });
+                        y+=4;
                         doc.setFont("helvetica", "normal");
-                        doc.text("-".repeat(40), margin, y); y+=4;
+                        doc.text(separator, margin, y); y+=4;
 
                         // Items
                         // Renta
                         if(venta.subtotalRenta > 0) {
-                            doc.text(`1   Renta Equipo`, margin, y); 
+                            doc.text(`1`, 2, y);
+                            doc.text(`Renta Equipo`, 10, y);
+                            doc.text(`$${venta.subtotalRenta.toFixed(2)}`, 42, y, { align: 'right' });
                             doc.text(`$${venta.subtotalRenta.toFixed(2)}`, rightX, y, { align: 'right' });
                             y+=4;
                         }
@@ -1036,14 +1098,15 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                         venta.productos.forEach(p => {
                             const qty = p.cantidad || 1;
                             const importe = qty * p.precio;
-                            const nombre = p.nombre.substring(0, 18); // Truncar nombre
-                            
-                            doc.text(`${qty}   ${nombre}`, margin, y);
+                            const nombre = p.nombre.substring(0, 14); // Truncar nombre para que quepa
+                            doc.text(`${qty}`, 2, y);
+                            doc.text(`${nombre}`, 10, y);
+                            doc.text(`$${p.precio.toFixed(2)}`, 42, y, { align: 'right' });
                             doc.text(`$${importe.toFixed(2)}`, rightX, y, { align: 'right' });
                             y+=4;
                         });
 
-                        doc.text("-".repeat(40), margin, y); y+=4;
+                        doc.text(separator, margin, y); y+=4;
 
                         // Desglose Totales
                         doc.setFontSize(7);
@@ -1068,7 +1131,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                         doc.setFontSize(7);
                         doc.setFont("helvetica", "normal");
-                        doc.text("¡Gracias por su preferencia!", centerX, y, { align: 'center' });
+                        doc.text(tConfig.mensajeFinal, centerX, y, { align: 'center' });
 
                         doc.save(`Ticket_${folioFiscal}.pdf`); 
                     }
@@ -1154,52 +1217,51 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
             };
 
             // --- RENDER ---
-            if (!usuarioActual) return <LoginScreen onLogin={setUsuarioActual} usuarios={usuarios} />;
+            if (!usuarioActual) return <LoginScreen onLogin={setUsuarioActual} usuarios={usuarios} empresa={config.negocio?.nombre || "FasTPV"} />;
             const eqSel = getEquipoActual();
             const ventasTurno = obtenerVentasTurno();
             const totalVentasTurno = ventasTurno.reduce((acc, v) => acc + v.total, 0);
 
             return (
-                <div className="min-h-screen bg-slate-300 text-slate-800 font-sans pb-10">
+                <div className="min-h-screen bg-[#f2f2f7] dark:bg-[#1c1c1e] text-slate-800 dark:text-slate-100 font-sans pb-10 selection:bg-blue-500 selection:text-white transition-colors duration-300">
                     {/* NAV */}
-                    <nav className={`${COLOR_CORP} text-white shadow-lg sticky top-0 z-20`}>
+                    <nav className={`${COLOR_CORP} sticky top-0 z-20`}>
                         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <Monitor className="text-cyan-400" />
-                                <div><h1 className="font-bold leading-tight hidden md:block">{EMPRESA}</h1><p className="text-[10px] text-slate-400">{SISTEMA}</p></div>
+                                <div className="bg-blue-500 p-1.5 rounded-lg text-white shadow-lg shadow-blue-500/30"><Monitor size={20} /></div>
+                                <div><h1 className="font-bold leading-tight hidden md:block">{config.negocio?.nombre || "FasTPV"}</h1><p className="text-[10px] text-slate-400">{SISTEMA}</p></div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {/* BOTON CORTE DE CAJA (NUEVO) */}
-                                <button onClick={() => setModalAbierto('caja')} className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg border transition-all ${caja.activa ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700' : 'bg-slate-700 border-slate-600 hover:bg-slate-600'}`}>
-                                    <Wallet size={18} /> <span className="hidden sm:inline">{caja.activa ? `$${(caja.fondo + totalVentasTurno).toFixed(2)}` : 'Abrir Caja'}</span>
+                                <button onClick={() => setModalAbierto('caja')} className={`px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 shadow-sm border transition-all ${caja.activa ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-500 hover:text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                    <Wallet size={18} /> <span className="hidden sm:inline">{caja.activa ? `$${(caja.fondo + totalVentasTurno).toFixed(2)}` : 'Caja'}</span>
                                 </button>
                                 
-                                <div className="h-6 w-px bg-slate-700 mx-1"></div>
+                                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-                                <button onClick={abrirVentaDirecta} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg border border-orange-500 fade-anim">
+                                <button onClick={abrirVentaDirecta} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg shadow-orange-500/30 transition-all fade-anim">
                                     <Store size={18} /> <span className="hidden sm:inline">Venta</span>
                                 </button>
                                 
-                                <button onClick={() => setChatAbierto(!chatAbierto)} className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 animate-pulse hover:animate-none">
-                                    <Sparkles size={14} className="text-yellow-300" /> IA
-                                </button>
                                 {usuarioActual.rol === 'admin' && (
                                     <>
-                                        <button onClick={() => setModalAbierto('backup')} className="p-2 hover:bg-slate-700 rounded text-amber-300" title="Respaldo y Migración"><Database size={20}/></button>
-                                        <button onClick={() => setModalAbierto('estaciones')} className="p-2 hover:bg-slate-700 rounded text-cyan-300"><Settings size={20}/></button>
-                                        <button onClick={() => setModalAbierto('usuarios')} className="p-2 hover:bg-slate-700 rounded"><UserCog size={20}/></button>
-                                        <button onClick={() => setModalAbierto('inventario')} className="p-2 hover:bg-slate-700 rounded"><Package size={20}/></button>
+                                        <button onClick={() => setModalAbierto('backup')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-amber-500 transition-colors" title="Respaldo"><Database size={20}/></button>
+                                        <button onClick={() => setModalAbierto('config')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Configuración"><Settings size={20}/></button>
+                                        <button onClick={() => setModalAbierto('estaciones')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-blue-500 transition-colors" title="Estaciones"><Monitor size={20}/></button>
+                                        <button onClick={() => setModalAbierto('usuarios')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-indigo-500 transition-colors"><UserCog size={20}/></button>
+                                        <button onClick={() => setModalAbierto('inventario')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors"><Package size={20}/></button>
                                     </>
                                 )}
-                                <button onClick={() => setModalAbierto('clientes')} className="p-2 hover:bg-slate-700 rounded"><Users size={20}/></button>
+                                <button onClick={() => setModalAbierto('clientes')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-pink-500 transition-colors"><Users size={20}/></button>
+                                <button onClick={() => setModalAbierto('legal')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:text-cyan-500 transition-colors" title="Información y Legal"><Info size={20}/></button>
                                 <div className="hidden md:flex items-center gap-2 mr-4 ml-2">
-                                    <div className="bg-slate-700 px-3 py-1 rounded-full text-xs flex items-center gap-2">
-                                        <Shield size={12} className={usuarioActual.rol === 'admin' ? 'text-emerald-400' : 'text-slate-400'}/>
+                                    <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                                        <Shield size={12} className={usuarioActual.rol === 'admin' ? 'text-blue-500' : 'text-slate-400'}/>
                                         <span className="capitalize font-bold">{usuarioActual.nombre}</span>
                                     </div>
-                                    <button onClick={() => setModalAbierto('cambiar_pin')} className="bg-slate-700 hover:bg-slate-600 p-1.5 rounded-full text-white"><Key size={12} /></button>
+                                    <button onClick={() => setModalAbierto('cambiar_pin')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 p-1.5 rounded-full text-slate-600 dark:text-slate-300"><Key size={12} /></button>
                                 </div>
-                                <button onClick={() => setUsuarioActual(null)} className="ml-2 bg-rose-600 p-2 rounded"><LogOut size={18}/></button>
+                                <button onClick={() => setUsuarioActual(null)} className="ml-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 p-2 rounded-full transition-colors"><LogOut size={18}/></button>
                             </div>
                         </div>
                     </nav>
@@ -1213,18 +1275,19 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                 const restante = eq.limiteTiempo - tiempoMs;
                                 const alerta1Min = esPrepago && restante <= 60000 && restante > 0;
                                 const finalizado = eq.estado === 'finalizado';
-                                let cardClass = "bg-white rounded-lg shadow border border-slate-200 overflow-hidden hover:shadow-lg transition-all relative";
-                                if (alerta1Min) cardClass += " border-orange-400 ring-2 ring-orange-200";
-                                if (finalizado) cardClass += " alarm-active border-rose-600";
+                                let cardClass = "bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/60 dark:border-slate-700/60 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group";
+                                if (esPrepago && !finalizado && !alerta1Min) cardClass += " ring-2 ring-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10";
+                                if (alerta1Min) cardClass += " ring-2 ring-orange-400";
+                                if (finalizado) cardClass += " alarm-active ring-2 ring-rose-500";
 
                                 return (
                                     <div key={eq.id} className={cardClass}>
-                                        <div className={`p-3 border-b flex justify-between items-center ${eq.estado === 'ocupado' ? 'bg-indigo-50' : finalizado ? 'bg-rose-100' : 'bg-slate-50'}`}>
+                                        <div className={`p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center ${eq.estado === 'ocupado' ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : finalizado ? 'bg-rose-50/80 dark:bg-rose-900/20' : 'bg-transparent'}`}>
                                             <div className="flex items-center gap-2">
                                                 {eq.tipo === 'PC' ? <Monitor size={18} /> : <Gamepad2 size={18} />}
                                                 <span className="font-bold">{eq.nombre}</span>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${eq.estado === 'libre' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${eq.estado === 'libre' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>
                                                 {finalizado ? 'TIEMPO FINALIZADO' : eq.estado}
                                             </span>
                                         </div>
@@ -1235,36 +1298,36 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                                         <div className={`h-full ${alerta1Min ? 'bg-orange-500' : 'bg-indigo-500'}`} style={{ width: `${Math.max(0, (restante / eq.limiteTiempo) * 100)}%`, transition: 'width 1s linear' }}></div>
                                                     </div>
                                                 )}
-                                                <div className={`text-3xl font-mono ${finalizado ? 'text-rose-600 font-bold' : alerta1Min ? 'text-orange-500 animate-pulse' : 'text-slate-800'}`}>
+                                                <div className={`text-3xl font-mono ${finalizado ? 'text-rose-600 dark:text-rose-400 font-bold' : alerta1Min ? 'text-orange-500 animate-pulse' : 'text-slate-800 dark:text-white'}`}>
                                                     {esPrepago && !finalizado ? new Date(Math.max(0, restante)).toISOString().substr(11, 8) : new Date(tiempoMs).toISOString().substr(11, 8) }
                                                 </div>
-                                                <div className="text-xs text-slate-400 uppercase font-bold">
+                                                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-1">
                                                     {esPrepago ? (finalizado ? "SE REQUIERE COBRO" : "TIEMPO RESTANTE (PREPAGO)") : "TIEMPO TRANSCURRIDO"}
                                                 </div>
                                             </div>
-                                            <div className="flex justify-between items-center text-sm mb-4 bg-slate-50 p-2 rounded">
-                                                <span className="text-slate-500">A Pagar:</span>
-                                                <span className="font-bold text-xl text-slate-800">${(calcularTotalRenta(eq) + eq.cuenta.reduce((a,i)=>a+(i.precio * (i.cantidad || 1)),0)).toFixed(2)}</span>
+                                            <div className="flex justify-between items-center text-sm mb-4 bg-slate-50/80 dark:bg-slate-700/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-600">
+                                                <span className="text-slate-500 dark:text-slate-400">A Pagar:</span>
+                                                <span className="font-bold text-xl text-slate-800 dark:text-white">${(calcularTotalRenta(eq) + eq.cuenta.reduce((a,i)=>a+(i.precio * (i.cantidad || 1)),0)).toFixed(2)}</span>
                                             </div>
                                             <div className="grid grid-cols-4 gap-2">
                                                 {eq.estado === 'libre' ? (
                                                     <>
-                                                        <button onClick={() => iniciarTiempoLibre(eq.id)} className="col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded font-bold flex justify-center items-center gap-2 text-xs"><Play size={14}/> LIBRE</button>
-                                                        <button onClick={() => abrirPrepago(eq.id)} className="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-bold flex justify-center items-center gap-2 text-xs"><Timer size={14}/> PREPAGO</button>
+                                                        <button onClick={() => iniciarTiempoLibre(eq.id)} className="col-span-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 text-xs shadow-lg shadow-emerald-500/20 transition-all"><Play size={14}/> LIBRE</button>
+                                                        <button onClick={() => abrirPrepago(eq.id)} className="col-span-2 bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 text-xs shadow-lg shadow-blue-500/20 transition-all"><Timer size={14}/> PREPAGO</button>
                                                     </>
                                                 ) : (
                                                     <>
                                                         {!finalizado && !esPrepago && (
-                                                            <button onClick={() => togglePausa(eq.id)} className={`col-span-2 py-2 rounded text-white font-bold flex justify-center items-center ${eq.estado === 'ocupado' ? 'bg-amber-500' : 'bg-emerald-500'}`}>
+                                                            <button onClick={() => togglePausa(eq.id)} className={`col-span-2 py-2.5 rounded-xl text-white font-bold flex justify-center items-center shadow-md transition-all ${eq.estado === 'ocupado' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
                                                                 {eq.estado === 'ocupado' ? <Pause size={16}/> : <Play size={16}/>}
                                                             </button>
                                                         )}
-                                                        {esPrepago && !finalizado && <div className="col-span-2 bg-indigo-100 text-indigo-700 rounded flex justify-center items-center text-xs font-bold border border-indigo-200"><Lock size={12} className="mr-1"/> BLOQUEADO</div>}
-                                                        {finalizado && <div className="col-span-2 bg-rose-100 text-rose-700 rounded flex justify-center items-center text-xs font-bold border border-rose-200 animate-pulse"><Bell size={12} className="mr-1"/> ¡COBRAR!</div>}
-                                                        <button onClick={() => { setEquipoSeleccionadoId(eq.id); setModalAbierto('productos'); }} className="bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded flex justify-center items-center"><Coffee size={18}/></button>
-                                                        <button onClick={() => { setEquipoSeleccionadoId(eq.id); setModalAbierto('cobrar'); }} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded flex justify-center items-center shadow-lg transform active:scale-95" title="Cobrar"><CircleDollarSign size={18}/></button>
-                                                        <button onClick={() => iniciarIntercambio(eq.id)} className="col-span-2 mt-1 bg-cyan-50 text-cyan-700 border border-cyan-200 py-1 rounded text-xs font-bold flex justify-center items-center gap-1 hover:bg-cyan-100"><ArrowRightLeft size={14}/> Mover</button>
-                                                        <button onClick={() => cancelarServicio(eq.id)} className="col-span-2 mt-1 bg-white text-slate-400 border border-slate-200 py-1 rounded text-xs font-bold flex justify-center items-center gap-1 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"><RotateCcw size={14} className="mr-1"/> Reset / Cancelar</button>
+                                                        {esPrepago && !finalizado && <div className="col-span-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-xl flex justify-center items-center text-xs font-bold border border-indigo-100 dark:border-indigo-800"><Lock size={12} className="mr-1"/> BLOQUEADO</div>}
+                                                        {finalizado && <div className="col-span-2 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl flex justify-center items-center text-xs font-bold border border-rose-100 dark:border-rose-800 animate-pulse"><Bell size={12} className="mr-1"/> ¡COBRAR!</div>}
+                                                        <button onClick={() => { if(verificarCaja()) { setEquipoSeleccionadoId(eq.id); setModalAbierto('productos'); } }} className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl flex justify-center items-center transition-colors"><Coffee size={18}/></button>
+                                                        <button onClick={() => { if(verificarCaja()) { setEquipoSeleccionadoId(eq.id); setModalAbierto('cobrar'); } }} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex justify-center items-center shadow-lg shadow-emerald-500/30 transform active:scale-95 transition-all" title="Cobrar"><CircleDollarSign size={18}/></button>
+                                                        <button onClick={() => iniciarIntercambio(eq.id)} className="col-span-2 mt-1 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 py-1.5 rounded-lg text-xs font-bold flex justify-center items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-600 hover:text-blue-500 transition-colors"><ArrowRightLeft size={14}/> Mover</button>
+                                                        <button onClick={() => cancelarServicio(eq.id)} className="col-span-2 mt-1 bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-400 border border-slate-200 dark:border-slate-600 py-1.5 rounded-lg text-xs font-bold flex justify-center items-center gap-1 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"><RotateCcw size={14} className="mr-1"/> Reset</button>
                                                     </>
                                                 )}
                                             </div>
@@ -1277,13 +1340,13 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                     {/* --- MODAL DE CAJA (NUEVO) --- */}
                     {modalAbierto === 'caja' && (
-                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] fade-anim">
-                            <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden modal-anim">
-                                <div className="bg-slate-800 p-4 text-white flex justify-between items-center"><h2 className="font-bold flex items-center gap-2"><Wallet/> Control de Caja</h2><button onClick={() => setModalAbierto(null)}><X/></button></div>
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-[80] fade-anim">
+                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
+                                <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center"><h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><Wallet className="text-blue-500"/> Control de Caja</h2><button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} className="text-slate-500 dark:text-slate-400"/></button></div>
                                 
                                 {caja.activa ? (
                                     <div className="p-6">
-                                        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-lg text-center mb-4">
+                                        <div className="bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-4 rounded-2xl text-center mb-4">
                                             <p className="text-sm text-emerald-700 font-bold uppercase">Turno Activo Desde</p>
                                             <p className="text-xs text-slate-500">{new Date(caja.inicio).toLocaleString()}</p>
                                         </div>
@@ -1296,12 +1359,12 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                                 <span className="text-slate-500">Ventas Turno ({ventasTurno.length})</span>
                                                 <span className="font-bold text-lg text-indigo-600">+${totalVentasTurno.toFixed(2)}</span>
                                             </div>
-                                            <div className="flex justify-between items-center bg-slate-100 p-2 rounded">
-                                                <span className="text-slate-700 font-bold">TOTAL EN CAJA</span>
-                                                <span className="font-black text-2xl text-slate-800">${(caja.fondo + totalVentasTurno).toFixed(2)}</span>
+                                            <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded">
+                                                <span className="text-slate-700 dark:text-slate-300 font-bold">TOTAL EN CAJA</span>
+                                                <span className="font-black text-2xl text-slate-800 dark:text-white">${(caja.fondo + totalVentasTurno).toFixed(2)}</span>
                                             </div>
                                         </div>
-                                        <button onClick={cerrarCaja} className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-lg font-bold shadow-lg">Cerrar Turno / Corte de Caja</button>
+                                        <button onClick={cerrarCaja} className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-rose-500/30 transition-all">Cerrar Turno / Corte de Caja</button>
                                     </div>
                                 ) : (
                                     <div className="p-6">
@@ -1309,23 +1372,45 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Monto Fondo Inicial</label>
                                         <div className="relative mb-6">
                                             <span className="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
-                                            <input type="number" className="w-full border-2 border-slate-200 rounded-lg p-2 pl-8 text-lg font-bold outline-none focus:border-indigo-500" placeholder="0.00" value={cajaForm.fondo} onChange={e => setCajaForm({...cajaForm, fondo: e.target.value})} autoFocus />
+                                            <input type="number" className="w-full border border-slate-200 dark:border-slate-700 bg-transparent dark:bg-slate-800 rounded-xl p-2 pl-8 text-lg font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:text-white transition-all" placeholder="0.00" value={cajaForm.fondo} onChange={e => setCajaForm({...cajaForm, fondo: e.target.value})} autoFocus />
                                         </div>
-                                        <button onClick={abrirCaja} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold shadow-lg">Iniciar Turno</button>
+                                        <button onClick={abrirCaja} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all">Iniciar Turno</button>
                                     </div>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {/* --- MODAL ESTACIONES (CONFIGURACION ACTUALIZADA) --- */}
-                    {modalAbierto === 'estaciones' && (
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col modal-anim">
-                                <div className="bg-slate-800 p-4 text-white flex justify-between items-center rounded-t-xl"><h2 className="font-bold flex items-center gap-2"><Settings /> Configuración de Terminales</h2><button onClick={() => setModalAbierto(null)}><X /></button></div>
+                    {/* --- MODAL CONFIGURACION (GENERAL Y PRECIOS) --- */}
+                    {modalAbierto === 'config' && (
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col modal-anim border border-white/20 dark:border-slate-700">
+                                <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center"><h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><Settings className="text-slate-500"/> Configuración General</h2><button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} className="text-slate-500 dark:text-slate-400"/></button></div>
                                 
                                 {/* NUEVO: CONFIGURACION GENERAL */}
-                                <div className="p-4 bg-yellow-50 border-b border-yellow-100 flex flex-col gap-4">
+                                <div className="p-4 bg-amber-50/50 dark:bg-amber-900/20 border-b border-amber-100/50 dark:border-amber-800/50 flex flex-col gap-4">
+                                    <div className="space-y-3">
+                                        <h3 className="font-bold text-amber-800 dark:text-amber-400 text-xs uppercase flex items-center gap-2"><Building size={14}/> Datos del Negocio (Ticket)</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Nombre Empresa</label>
+                                                <input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.nombre} onChange={e => setConfig({...config, negocio: {...config.negocio, nombre: e.target.value}})} />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">RFC</label>
+                                                <input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.rfc} onChange={e => setConfig({...config, negocio: {...config.negocio, rfc: e.target.value}})} />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Dirección Fiscal</label>
+                                                <input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.direccion} onChange={e => setConfig({...config, negocio: {...config.negocio, direccion: e.target.value}})} />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Lugar Expedición</label>
+                                                <input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.lugarExpedicion} onChange={e => setConfig({...config, negocio: {...config.negocio, lugarExpedicion: e.target.value}})} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div className="flex items-center justify-between">
                                         <div className="text-sm text-yellow-800">
                                             <span className="font-bold block">Tarifa Mínima Global</span>
@@ -1333,7 +1418,7 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-yellow-900">$</span>
-                                            <input type="number" className="w-20 border border-yellow-300 rounded p-1 text-center font-bold" value={config.tarifaMinima} onChange={e => setConfig({...config, tarifaMinima: parseFloat(e.target.value) || 0})} />
+                                            <input type="number" className="w-20 border border-yellow-300 dark:border-yellow-700 bg-white dark:bg-slate-800 rounded p-1 text-center font-bold dark:text-white" value={config.tarifaMinima} onChange={e => setConfig({...config, tarifaMinima: parseFloat(e.target.value) || 0})} />
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -1341,29 +1426,138 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                             <span className="font-bold block">Formato Ticket Predeterminado</span>
                                             <span className="text-xs opacity-75">Selecciona el tamaño de impresión</span>
                                         </div>
-                                        <select className="border border-yellow-300 rounded p-1 text-sm font-bold bg-white" value={config.formatoTicket || '58mm'} onChange={e => setConfig({...config, formatoTicket: e.target.value})}>
+                                        <select className="border border-yellow-300 dark:border-yellow-700 rounded p-1 text-sm font-bold bg-white dark:bg-slate-800 dark:text-white" value={config.formatoTicket || '58mm'} onChange={e => setConfig({...config, formatoTicket: e.target.value})}>
                                             <option value="58mm">Ticket Térmico (58mm)</option>
                                             <option value="LETTER">Carta (PDF Completo)</option>
                                         </select>
                                     </div>
+                                    <div className="pt-2">
+                                        <button onClick={() => setModalAbierto('config_ticket')} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-lg font-bold flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 transition-colors"><FileText size={18}/> Configurar Diseño de Ticket</button>
+                                    </div>
                                 </div>
 
-                                <div className="p-6 bg-slate-50 flex gap-6 overflow-auto">
-                                    <div className="w-1/2 bg-white p-4 rounded shadow-sm h-fit space-y-3 border">
-                                        <h3 className="font-bold text-sm text-slate-500 uppercase">{estacionForm.id ? "Editar Estación" : "Nueva Estación"}</h3>
-                                        <input className="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500" placeholder="Nombre (Ej. PC-01)" value={estacionForm.nombre} onChange={e => setEstacionForm({...estacionForm, nombre: e.target.value})} />
-                                        <select className="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500" value={estacionForm.tipo} onChange={e => setEstacionForm({...estacionForm, tipo: e.target.value})}><option value="PC">PC / Computadora</option><option value="CONSOLA">Consola (Xbox/PS)</option></select>
-                                        <div className="flex items-center gap-2"><span className="text-sm font-bold">$</span><input type="number" className="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500" placeholder="Precio por Hora" value={estacionForm.precioHora} onChange={e => setEstacionForm({...estacionForm, precioHora: e.target.value})} /></div>
-                                        <button onClick={guardarEstacion} className="w-full bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700 shadow transition-all">{estacionForm.id ? "Actualizar" : "Crear"}</button>
-                                        {estacionForm.id && <button onClick={() => setEstacionForm({ id: null, nombre: '', tipo: 'PC', precioHora: '' })} className="w-full border py-1 rounded text-xs text-slate-500">Cancelar Edición</button>}
-                                    </div>
-                                    <div className="w-1/2 bg-white rounded shadow-sm overflow-hidden border overflow-y-auto max-h-80">
-                                        {equipos.map(e => (
-                                            <div key={e.id} className="p-3 border-b flex justify-between items-center hover:bg-slate-50">
-                                                <div><div className="font-bold text-sm">{e.nombre}</div><div className="text-xs text-slate-400">{e.tipo} - ${e.precioHora}/hr</div></div>
-                                                <div className="flex gap-2"><button onClick={() => prepararEdicionEstacion(e)} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded"><Edit2 size={16}/></button><button onClick={() => eliminarEstacion(e.id)} className="text-rose-600 hover:bg-rose-50 p-1 rounded"><Trash2 size={16}/></button></div>
+                                {/* NUEVO: EDITOR DE PRECIOS */}
+                                <div className="p-4 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+                                    <h3 className="font-bold text-slate-700 dark:text-white mb-4 flex items-center gap-2 text-sm uppercase"><DollarSign size={16}/> Configuración de Precios</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase">Impresión B/N</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div><span className="text-[10px] text-slate-400 block">Básica</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.bn.B} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, bn: {...config.precios.impresion.bn, B: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Media</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.bn.M} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, bn: {...config.precios.impresion.bn, M: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Alta</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.bn.G} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, bn: {...config.precios.impresion.bn, G: parseFloat(e.target.value)}}}})} /></div>
                                             </div>
-                                        ))}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase">Impresión Color</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div><span className="text-[10px] text-slate-400 block">Básica</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.color.B} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, color: {...config.precios.impresion.color, B: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Media</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.color.M} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, color: {...config.precios.impresion.color, M: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Alta</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.impresion.color.G} onChange={e => setConfig({...config, precios: {...config.precios, impresion: {...config.precios.impresion, color: {...config.precios.impresion.color, G: parseFloat(e.target.value)}}}})} /></div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase">Otros Servicios</label>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                <div><span className="text-[10px] text-slate-400 block">WiFi</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.wifi} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, wifi: parseFloat(e.target.value)}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Asesoría</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.asesoria} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, asesoria: parseFloat(e.target.value)}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Oficio(+)</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.extras.oficio} onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, oficio: parseFloat(e.target.value)}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Tabloide(x)</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.extras.tabloide} onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, tabloide: parseFloat(e.target.value)}}})} /></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- MODAL CONFIG TICKET --- */}
+                    {modalAbierto === 'config_ticket' && (
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-lg modal-anim border border-white/20 dark:border-slate-700">
+                                <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center">
+                                    <h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><FileText className="text-slate-500"/> Diseño de Ticket</h2>
+                                    <button onClick={() => setModalAbierto('config')} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><ArrowRightLeft size={20} className="text-slate-500 dark:text-slate-400"/></button>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Encabezados de Columnas</label>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            <input className="border p-2 rounded text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="Cant" value={config.ticketConfig.headers.cant} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, headers: {...config.ticketConfig.headers, cant: e.target.value}}})} />
+                                            <input className="border p-2 rounded text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="Desc" value={config.ticketConfig.headers.desc} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, headers: {...config.ticketConfig.headers, desc: e.target.value}}})} />
+                                            <input className="border p-2 rounded text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="P.U." value={config.ticketConfig.headers.pu} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, headers: {...config.ticketConfig.headers, pu: e.target.value}}})} />
+                                            <input className="border p-2 rounded text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="Total" value={config.ticketConfig.headers.importe} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, headers: {...config.ticketConfig.headers, importe: e.target.value}}})} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Separador de Secciones</label>
+                                        <input className="w-full border p-2 rounded text-sm font-mono dark:bg-slate-800 dark:border-slate-600 dark:text-white" maxLength="1" placeholder="Ej. - o =" value={config.ticketConfig.separador} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, separador: e.target.value}})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Mensaje Final</label>
+                                        <input className="w-full border p-2 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="Gracias por su compra" value={config.ticketConfig.mensajeFinal} onChange={e => setConfig({...config, ticketConfig: {...config.ticketConfig, mensajeFinal: e.target.value}})} />
+                                    </div>
+                                    <div className="pt-4 border-t dark:border-slate-700">
+                                        <button onClick={() => setModalAbierto('config')} className="w-full bg-slate-800 text-white py-2 rounded-lg font-bold">Volver a Configuración</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- MODAL ESTACIONES (CRUD) --- */}
+                    {modalAbierto === 'estaciones' && (
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col modal-anim border border-white/20 dark:border-slate-700 overflow-hidden">
+                                <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center shrink-0"><h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><Monitor className="text-blue-500"/> Administrar Estaciones</h2><button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} className="text-slate-500 dark:text-slate-400"/></button></div>
+                                
+                                <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-6 overflow-hidden flex-1">
+                                    {/* Formulario */}
+                                    <div className="w-full md:w-1/3 bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm h-fit space-y-4 border border-slate-100 dark:border-slate-700 shrink-0">
+                                        <h3 className="font-bold text-sm text-slate-500 uppercase border-b dark:border-slate-700 pb-2">{estacionForm.id ? "Editar Estación" : "Nueva Estación"}</h3>
+                                        
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nombre</label>
+                                            <input className="w-full border border-slate-200 dark:border-slate-700 bg-transparent dark:bg-slate-900 p-2 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:text-white transition-all" placeholder="Ej. PC-01" value={estacionForm.nombre} onChange={e => setEstacionForm({...estacionForm, nombre: e.target.value})} />
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button onClick={() => setEstacionForm({...estacionForm, tipo: 'PC'})} className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${estacionForm.tipo === 'PC' ? 'bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}><Monitor size={20}/> PC</button>
+                                                <button onClick={() => setEstacionForm({...estacionForm, tipo: 'CONSOLA'})} className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${estacionForm.tipo === 'CONSOLA' ? 'bg-purple-50 border-purple-500 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}><Gamepad2 size={20}/> Consola</button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Precio por Hora</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
+                                                <input type="number" className="w-full border border-slate-200 dark:border-slate-700 bg-transparent dark:bg-slate-900 p-2 pl-6 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:text-white transition-all" placeholder="0.00" value={estacionForm.precioHora} onChange={e => setEstacionForm({...estacionForm, precioHora: e.target.value})} />
+                                            </div>
+                                        </div>
+
+                                        <button onClick={guardarEstacion} className="w-full bg-blue-500 text-white py-3 rounded-xl font-bold hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all flex justify-center items-center gap-2"><Save size={18}/> {estacionForm.id ? "Actualizar" : "Crear Estación"}</button>
+                                        {estacionForm.id && <button onClick={() => setEstacionForm({ id: null, nombre: '', tipo: 'PC', precioHora: '' })} className="w-full py-2 rounded text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Cancelar Edición</button>}
+                                    </div>
+
+                                    {/* Grid de Estaciones */}
+                                    <div className="w-full md:w-2/3 overflow-y-auto custom-scrollbar pr-2">
+                                        {equipos.length === 0 ? (
+                                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60"><Monitor size={48} className="mb-2 stroke-1"/><p>No hay estaciones registradas</p></div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {equipos.map(e => (
+                                                    <div key={e.id} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all group relative">
+                                                        <div className="flex justify-between items-start mb-3">
+                                                            <div className={`p-3 rounded-xl ${e.tipo === 'PC' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'}`}>{e.tipo === 'PC' ? <Monitor size={24}/> : <Gamepad2 size={24}/>}</div>
+                                                            <div className="flex gap-1"><button onClick={() => prepararEdicionEstacion(e)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Editar"><Edit2 size={16}/></button><button onClick={() => eliminarEstacion(e.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors" title="Eliminar"><Trash2 size={16}/></button></div>
+                                                        </div>
+                                                        <div><div className="font-bold text-slate-700 dark:text-slate-200 text-lg">{e.nombre}</div><div className="flex items-center gap-2 mt-1"><span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 uppercase">{e.tipo}</span><span className="text-xs font-mono text-slate-400">${e.precioHora}/hr</span></div></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1389,31 +1583,31 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                     {/* --- MODAL VENTA DIRECTA --- */}
                     {modalAbierto === 'venta_directa' && (
-                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-6 fade-anim">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-full sm:h-[90vh] flex flex-col overflow-hidden modal-anim">
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-6 fade-anim">
+                            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-7xl h-full sm:h-[90vh] flex flex-col overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
                                 {/* Header */}
-                                <div className="bg-orange-600 p-4 text-white flex justify-between items-center border-b border-orange-700">
+                                <div className="p-4 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-700">
                                     <div className="flex items-center gap-3">
-                                        <div className="bg-white/20 p-2 rounded-lg"><Store size={24} className="text-white" /></div>
-                                        <div><h2 className="font-bold text-lg leading-none">Venta de Mostrador</h2><p className="text-xs text-orange-200 opacity-90">Clientes sin equipo asignado</p></div>
+                                        <div className="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-500/20"><Store size={24} className="text-white" /></div>
+                                        <div><h2 className="font-bold text-lg leading-none text-slate-800 dark:text-white">Venta de Mostrador</h2><p className="text-xs text-slate-400">Clientes sin equipo asignado</p></div>
                                     </div>
-                                    <button onClick={() => setModalAbierto(null)} className="hover:bg-white/20 p-2 rounded-full"><X size={24} /></button>
+                                    <button onClick={() => setModalAbierto(null)} className="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full text-slate-500 dark:text-slate-400 transition-colors"><X size={24} /></button>
                                 </div>
-                                <div className="flex flex-1 overflow-hidden bg-slate-100 flex-col sm:flex-row">
+                                <div className="flex flex-1 overflow-hidden bg-slate-50/50 dark:bg-slate-900/50 flex-col sm:flex-row">
                                     <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
                                         {/* Left Column: Inventario */}
-                                        <div className="w-full sm:w-1/2 flex flex-col border-r border-slate-200 bg-white">
-                                            <div className="p-3 border-b bg-slate-50 flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario (Clic para agregar)</h3></div>
+                                        <div className="w-full sm:w-1/2 flex flex-col border-r border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
                                             <div className="flex-1 overflow-y-auto p-3">
                                                 <div className="grid grid-cols-1 gap-2">
                                                     {catalogo.map(prod => (
-                                                        <button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoDirecto(prod)} className="flex items-center gap-3 p-3 bg-white border rounded-lg hover:border-orange-500 hover:bg-orange-50 hover:shadow-md text-left disabled:opacity-50 transition-all group">
+                                                        <button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoDirecto(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all group">
                                                             <span className="text-2xl">{prod.icon}</span>
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="text-sm font-bold text-slate-700 truncate group-hover:text-orange-700">{prod.nombre}</div>
+                                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-orange-700 dark:group-hover:text-orange-400">{prod.nombre}</div>
                                                                 <div className="flex justify-between items-center mt-1">
                                                                     <span className="text-xs text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded">${prod.precio}</span>
-                                                                    <span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>Stock: {prod.stock}</span>
+                                                                    <span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Stock: {prod.stock}</span>
                                                                 </div>
                                                             </div>
                                                             <PlusCircle size={20} className="text-slate-200 group-hover:text-orange-500"/>
@@ -1423,14 +1617,14 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                             </div>
                                         </div>
                                         {/* Right Column: Servicios */}
-                                        <div className="w-full sm:w-1/2 flex flex-col bg-white border-l border-slate-200">
-                                            <div className="p-3 border-b bg-indigo-50"><h3 className="font-bold text-xs text-indigo-700 uppercase flex items-center gap-2"><Printer size={14}/> Servicios Rápidos</h3></div>
+                                        <div className="w-full sm:w-1/2 flex flex-col bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700">
+                                            <div className="p-3 border-b bg-indigo-50 dark:bg-indigo-900/20"><h3 className="font-bold text-xs text-indigo-700 dark:text-indigo-300 uppercase flex items-center gap-2"><Printer size={14}/> Servicios Rápidos</h3></div>
                                             <div className="p-4 space-y-4 overflow-y-auto flex-1">
                                                 <div>
                                                     <label className="block text-xs font-bold text-slate-500 mb-2">1. Selecciona Servicio</label>
                                                     <div className="grid grid-cols-2 gap-2">
                                                         {[{ id: 'IMPRESION_BN', label: 'Imp. B/N', icon: <FileText size={18}/>, color: 'text-slate-600' }, { id: 'IMPRESION_COLOR', label: 'Imp. Color', icon: <Printer size={18}/>, color: 'text-pink-500' }, { id: 'ESCANEO', label: 'Escaneo', icon: <ScanBarcode size={18}/>, color: 'text-blue-500' }, { id: 'ENVIO', label: 'Envío', icon: <Bluetooth size={18}/>, color: 'text-indigo-500' }].map(opt => (
-                                                            <button key={opt.id} onClick={() => setServicioForm({...servicioForm, tipo: opt.id})} className={`p-2 rounded-lg border text-sm font-bold flex flex-col items-center gap-1 transition-all ${servicioForm.tipo === opt.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
+                                                            <button key={opt.id} onClick={() => setServicioForm({...servicioForm, tipo: opt.id})} className={`p-2 rounded-lg border text-sm font-bold flex flex-col items-center gap-1 transition-all ${servicioForm.tipo === opt.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
                                                                 <div className={servicioForm.tipo === opt.id ? 'text-white' : opt.color}>{opt.icon}</div>{opt.label}
                                                             </button>
                                                         ))}
@@ -1438,11 +1632,11 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                                 </div>
                                                 
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    <button onClick={() => setServicioForm({ ...servicioForm, tipo: 'WIFI' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'WIFI' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
-                                                        <div className={servicioForm.tipo === 'WIFI' ? 'text-white' : 'text-emerald-500'}><Wifi size={20}/></div>WiFi ($10)
+                                                    <button onClick={() => setServicioForm({ ...servicioForm, tipo: 'WIFI' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'WIFI' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                                                        <div className={servicioForm.tipo === 'WIFI' ? 'text-white' : 'text-emerald-500'}><Wifi size={20}/></div>WiFi (${config.precios.otros.wifi})
                                                     </button>
-                                                    <button onClick={() => setServicioForm({ ...servicioForm, tipo: 'ASESORIA' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'ASESORIA' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
-                                                        <div className={servicioForm.tipo === 'ASESORIA' ? 'text-white' : 'text-amber-500'}><HandHelping size={20}/></div>Asesoría ($15)
+                                                    <button onClick={() => setServicioForm({ ...servicioForm, tipo: 'ASESORIA' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'ASESORIA' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                                                        <div className={servicioForm.tipo === 'ASESORIA' ? 'text-white' : 'text-amber-500'}><HandHelping size={20}/></div>Asesoría (${config.precios.otros.asesoria})
                                                     </button>
                                                 </div>
 
@@ -1450,32 +1644,32 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                                     <div className="fade-anim">
                                                         <label className="block text-xs font-bold text-slate-500 mb-2">2. Intensidad / Tipo</label>
                                                         <div className="grid grid-cols-3 gap-2">
-                                                            {[{ id: 'B', label: 'Básica', price: PRECIOS_IMPRESION[servicioForm.tipo]['B'] }, { id: 'M', label: 'Media', price: PRECIOS_IMPRESION[servicioForm.tipo]['M'] }, { id: 'G', label: 'Alta', price: PRECIOS_IMPRESION[servicioForm.tipo]['G'] }].map(cob => (
-                                                                <button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded border text-center text-xs font-bold transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 ring-1 ring-indigo-500' : 'bg-white text-slate-600'}`}>
+                                                            {[{ id: 'B', label: 'Básica', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['B'] }, { id: 'M', label: 'Media', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['M'] }, { id: 'G', label: 'Alta', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['G'] }].map(cob => (
+                                                                <button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded border text-center text-xs font-bold transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'}`}>
                                                                     {cob.label}<br/><span className="text-slate-400 font-normal">${cob.price}</span>
                                                                 </button>
                                                             ))}
                                                         </div>
                                                     </div>
                                                 )}
-                                                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                                <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600">
                                                     {servicioForm.tipo !== 'ENVIO' && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && (
-                                                        <div className="flex bg-white p-1 rounded-lg border mb-3">
-                                                            {['CARTA', 'OFICIO', 'TABLOIDE'].map(tam => ((servicioForm.tipo === 'ESCANEO' && tam === 'TABLOIDE') ? null : <button key={tam} onClick={() => setServicioForm({...servicioForm, tamano: tam})} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${servicioForm.tamano === tam ? 'bg-white text-indigo-600 shadow-sm transform scale-105' : 'text-slate-400 hover:text-slate-600'}`}>{tam}</button>))}
+                                                        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border dark:border-slate-600 mb-3">
+                                                            {['CARTA', 'OFICIO', 'TABLOIDE'].map(tam => ((servicioForm.tipo === 'ESCANEO' && tam === 'TABLOIDE') ? null : <button key={tam} onClick={() => setServicioForm({...servicioForm, tamano: tam})} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${servicioForm.tamano === tam ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-300 shadow-sm transform scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>{tam}</button>))}
                                                         </div>
                                                     )}
                                                     <div className="flex gap-2 items-center mb-3">
-                                                        <div className="flex-1"><label className="block text-[10px] font-bold text-slate-500 mb-1">Cant.</label><input type="number" min="1" className="w-full border p-2 rounded-lg font-bold text-center outline-none focus:border-indigo-500" value={servicioForm.cantidad} onChange={e => setServicioForm({...servicioForm, cantidad: parseInt(e.target.value) || 1})} /></div>
-                                                        <div className="flex-[2] text-right"><div className="text-[10px] text-slate-400 uppercase font-bold">Total Item</div><div className="text-xl font-black text-slate-800">${(() => { const { tipo, tamano, cobertura } = servicioForm; let p = 0; if(tipo === 'ENVIO') p = OTROS_SERVICIOS['ENVIO']['GENERAL']; else if(tipo === 'ESCANEO') p = OTROS_SERVICIOS['ESCANEO'][tamano]; else if (tipo === 'WIFI') p = OTROS_SERVICIOS['WIFI']['GENERAL']; else if (tipo === 'ASESORIA') p = OTROS_SERVICIOS['ASESORIA']['GENERAL']; else { const base = PRECIOS_IMPRESION[tipo] ? PRECIOS_IMPRESION[tipo][cobertura] : 0; const mod = MODIFICADOR_TAMANO[tamano]; p = mod.op === 'add' ? base + mod.val : base * mod.val; } if (servicioForm.cantidad > 10) p = p * 0.9; return (p * servicioForm.cantidad).toFixed(2); })()}</div></div>
+                                                        <div className="flex-1"><label className="block text-[10px] font-bold text-slate-500 mb-1">Cant.</label><input type="number" min="1" className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg font-bold text-center outline-none focus:border-indigo-500 dark:text-white" value={servicioForm.cantidad} onChange={e => setServicioForm({...servicioForm, cantidad: parseInt(e.target.value) || 1})} /></div>
+                                                        <div className="flex-[2] text-right"><div className="text-[10px] text-slate-400 uppercase font-bold">Total Item</div><div className="text-xl font-black text-slate-800 dark:text-white">${(calcularPrecio(servicioForm.tipo, servicioForm.tamano, servicioForm.cobertura, servicioForm.cantidad) * servicioForm.cantidad).toFixed(2)}</div></div>
                                                     </div>
                                                     <button onClick={agregarServicioDirecto} className="w-full bg-slate-900 hover:bg-black text-white py-2 rounded-lg font-bold shadow flex justify-center items-center gap-2 text-sm"><CheckCircle size={16}/> Agregar</button>
                                                 </div>
                                                 
-                                                <div className="mt-4 pt-4 border-t border-slate-200">
+                                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                                                     <label className="block text-xs font-bold text-slate-500 mb-2">Agregar Cargo Manual</label>
                                                     <div className="flex gap-2">
-                                                        <input className="flex-1 border p-2 rounded text-sm" placeholder="Concepto (ej. Engargolado)" value={manualItemForm.nombre} onChange={e => setManualItemForm({...manualItemForm, nombre: e.target.value})} />
-                                                        <input className="w-20 border p-2 rounded text-sm" type="number" placeholder="$" value={manualItemForm.precio} onChange={e => setManualItemForm({...manualItemForm, precio: e.target.value})} />
+                                                        <input className="flex-1 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" placeholder="Concepto (ej. Engargolado)" value={manualItemForm.nombre} onChange={e => setManualItemForm({...manualItemForm, nombre: e.target.value})} />
+                                                        <input className="w-20 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" type="number" placeholder="$" value={manualItemForm.precio} onChange={e => setManualItemForm({...manualItemForm, precio: e.target.value})} />
                                                         <button onClick={agregarManualDirecto} className="bg-slate-700 text-white px-3 rounded hover:bg-slate-800"><PlusCircle size={18}/></button>
                                                     </div>
                                                 </div>
@@ -1483,33 +1677,33 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                         </div>
                                     </div>
                                     {/* Right Column: Carrito */}
-                                    <div className="w-full sm:w-96 bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20 h-1/3 sm:h-auto border-t sm:border-t-0">
-                                        <div className="p-4 bg-orange-50 border-b border-orange-100 flex justify-between items-center"><div><h3 className="font-bold text-orange-800 text-sm uppercase">Carrito Mostrador</h3></div><span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs font-bold">{carritoDirecto.length} Items</span></div>
-                                        <div className="px-4 py-2 bg-white border-b border-slate-100">
+                                    <div className="w-full sm:w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20 h-1/3 sm:h-auto border-t sm:border-t-0">
+                                        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800 flex justify-between items-center"><div><h3 className="font-bold text-orange-800 dark:text-orange-300 text-sm uppercase">Carrito Mostrador</h3></div><span className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-bold">{carritoDirecto.length} Items</span></div>
+                                        <div className="px-4 py-2 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
                                             <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Cliente (Para Puntos)</label>
                                             <div className="flex gap-2">
-                                                <select className="flex-1 border text-sm rounded p-1 bg-slate-50" value={ventaDirectaClienteId} onChange={e => setVentaDirectaClienteId(e.target.value)}>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+                                                <select className="flex-1 border dark:border-slate-600 text-sm rounded p-1 bg-slate-50 dark:bg-slate-700 dark:text-white" value={ventaDirectaClienteId} onChange={e => setVentaDirectaClienteId(e.target.value)}>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
                                                 <button onClick={() => setMostrarNuevoCliente(!mostrarNuevoCliente)} className="bg-indigo-100 text-indigo-600 p-1 rounded hover:bg-indigo-200" title="Nuevo Cliente"><UserPlus size={18}/></button>
                                             </div>
                                             {mostrarNuevoCliente && (<div className="mt-2 bg-indigo-50 p-2 rounded flex gap-2 fade-anim"><input className="flex-1 text-xs border rounded p-1" placeholder="Nombre Cliente" value={nuevoClienteNombre} onChange={e => setNuevoClienteNombre(e.target.value)} autoFocus /><button onClick={agregarClienteRapido} className="bg-indigo-600 text-white text-xs font-bold px-2 rounded hover:bg-indigo-700">OK</button></div>)}
                                         </div>
-                                        <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50">
-                                            {carritoDirecto.length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span></div>) : (carritoDirecto.map((i) => (<div key={i.uid} className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center group"><div><div className="font-bold text-sm text-slate-800">{i.nombre}</div><div className="text-xs text-slate-400">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><button onClick={() => eliminarItemDirecto(i.uid)} className="text-slate-300 hover:text-rose-500"><X size={16}/></button></div></div>)))}
+                                        <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">
+                                            {carritoDirecto.length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span></div>) : (carritoDirecto.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group"><div><div className="font-bold text-sm text-slate-800 dark:text-white">{i.nombre}</div><div className="text-xs text-slate-400">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><button onClick={() => eliminarItemDirecto(i.uid)} className="text-slate-300 hover:text-rose-500"><X size={16}/></button></div></div>)))}
                                         </div>
-                                        <div className="bg-white border-t border-slate-200 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                                        <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="font-bold text-lg text-slate-700">Total a Cobrar</span>
+                                                <span className="font-bold text-lg text-slate-700 dark:text-slate-200">Total a Cobrar</span>
                                                 <span className="font-black text-3xl text-orange-600">${carritoDirecto.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span>
                                             </div>
                                             
                                             {/* PAGO CON y CAMBIO en Venta Directa */}
-                                            <div className="mb-4 bg-slate-50 p-2 rounded border border-slate-100">
+                                            <div className="mb-4 bg-slate-50 dark:bg-slate-700 p-2 rounded border border-slate-100 dark:border-slate-600">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <label className="text-xs font-bold text-slate-500 w-20">Paga con:</label>
-                                                    <input type="number" className="flex-1 border p-1 rounded text-sm font-bold text-right" placeholder="$0.00" value={pagoConDirecto} onChange={e => setPagoConDirecto(e.target.value)}/>
+                                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 w-20">Paga con:</label>
+                                                    <input type="number" className="flex-1 border dark:border-slate-600 bg-white dark:bg-slate-800 p-1 rounded text-sm font-bold text-right dark:text-white" placeholder="$0.00" value={pagoConDirecto} onChange={e => setPagoConDirecto(e.target.value)}/>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <label className="text-xs font-bold text-slate-500 w-20">Cambio:</label>
+                                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 w-20">Cambio:</label>
                                                     <div className="flex-1 text-right text-lg font-black text-emerald-600">${(parseFloat(pagoConDirecto) - carritoDirecto.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</div>
                                                 </div>
                                             </div>
@@ -1524,29 +1718,29 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                     {/* --- MODAL INVENTARIO --- */}
                     {modalAbierto === 'inventario' && (
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
-                            <div className="bg-white rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl modal-anim">
+                        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                            <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl modal-anim border dark:border-slate-700">
                                 <div className="bg-indigo-700 p-4 text-white flex justify-between items-center rounded-t-xl"><h2 className="font-bold flex items-center gap-2"><Package /> Inventario</h2><button onClick={()=>{ setModalAbierto(null); setShowCamera(false); }}><X/></button></div>
-                                <div className="flex-1 p-6 bg-slate-50 flex gap-6 overflow-hidden">
-                                    <div className="w-1/3 bg-white p-5 rounded-lg shadow-sm border h-fit space-y-4 overflow-y-auto">
-                                        <h3 className="font-bold text-slate-700 border-b pb-2 flex justify-between items-center">{itemForm.id ? "Editar" : "Nuevo"} {itemForm.id && <button onClick={() => setItemForm({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' })} className="text-xs text-indigo-600 underline">Cancelar</button>}</h3>
+                                <div className="flex-1 p-6 bg-slate-50 dark:bg-slate-900 flex gap-6 overflow-hidden">
+                                    <div className="w-1/3 bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border dark:border-slate-700 h-fit space-y-4 overflow-y-auto">
+                                        <h3 className="font-bold text-slate-700 dark:text-white border-b dark:border-slate-700 pb-2 flex justify-between items-center">{itemForm.id ? "Editar" : "Nuevo"} {itemForm.id && <button onClick={() => setItemForm({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' })} className="text-xs text-indigo-600 underline">Cancelar</button>}</h3>
                                         <div className="border rounded bg-slate-100 overflow-hidden relative"><button onClick={() => setShowCamera(!showCamera)} className={`w-full py-2 text-xs font-bold flex justify-center items-center gap-2 ${showCamera ? 'bg-slate-200 text-slate-600' : 'bg-slate-800 text-white hover:bg-slate-900'}`}>{showCamera ? <><CameraOff size={14}/> Detener Cámara</> : <><Camera size={14}/> Usar Cámara / QR</>}</button>{showCamera && <div id="reader" className="w-full h-48 bg-black"></div>}</div>
-                                        <div><label className="text-xs font-bold text-slate-500">Producto</label><input className="w-full border p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.nombre} onChange={e => setItemForm({...itemForm, nombre: e.target.value})} placeholder="Ej. Coca Cola" /></div>
-                                        <div className="flex gap-2"><div className="flex-1"><label className="text-xs font-bold text-slate-500">Precio</label><input type="number" className="w-full border p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.precio} onChange={e => setItemForm({...itemForm, precio: e.target.value})} placeholder="0.00" /></div><div className="flex-1"><label className="text-xs font-bold text-slate-500">Stock</label><input type="number" className="w-full border p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.stock} onChange={e => setItemForm({...itemForm, stock: e.target.value})} placeholder="0" /></div></div>
-                                        <div><label className="text-xs font-bold text-slate-500">Categoría</label><select className="w-full border p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.categoria} onChange={e => setItemForm({...itemForm, categoria: e.target.value})}><option value="General">General</option><option value="Bebidas">Bebidas</option><option value="Snacks">Snacks</option><option value="Papelería">Papelería</option><option value="Tecnología">Tecnología</option></select></div>
-                                        <div><label className="text-xs font-bold text-slate-500">Código</label><div className="relative"><input className="w-full border p-2 pl-8 rounded mt-1 outline-none focus:border-indigo-500 bg-slate-50" value={itemForm.codigo} onChange={e => setItemForm({...itemForm, codigo: e.target.value})} placeholder="Escanear..." /><ScanBarcode size={16} className="absolute left-2.5 top-4 text-slate-400"/></div></div>
+                                        <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Producto</label><input className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.nombre} onChange={e => setItemForm({...itemForm, nombre: e.target.value})} placeholder="Ej. Coca Cola" /></div>
+                                        <div className="flex gap-2"><div className="flex-1"><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Precio</label><input type="number" className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.precio} onChange={e => setItemForm({...itemForm, precio: e.target.value})} placeholder="0.00" /></div><div className="flex-1"><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Stock</label><input type="number" className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.stock} onChange={e => setItemForm({...itemForm, stock: e.target.value})} placeholder="0" /></div></div>
+                                        <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Categoría</label><select className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.categoria} onChange={e => setItemForm({...itemForm, categoria: e.target.value})}><option value="General">General</option><option value="Bebidas">Bebidas</option><option value="Snacks">Snacks</option><option value="Papelería">Papelería</option><option value="Tecnología">Tecnología</option></select></div>
+                                        <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Código</label><div className="relative"><input className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white p-2 pl-8 rounded mt-1 outline-none focus:border-indigo-500" value={itemForm.codigo} onChange={e => setItemForm({...itemForm, codigo: e.target.value})} placeholder="Escanear..." /><ScanBarcode size={16} className="absolute left-2.5 top-4 text-slate-400"/></div></div>
                                         <button onClick={guardarProductoInventario} className="w-full bg-indigo-600 text-white py-2.5 rounded font-bold hover:bg-indigo-700 shadow transition-all flex justify-center items-center gap-2"><Save size={18}/> Guardar</button>
                                     </div>
-                                    <div className="w-2/3 bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col">
+                                    <div className="w-2/3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 overflow-hidden flex flex-col">
                                         <div className="overflow-y-auto flex-1">
-                                            <table className="w-full text-sm text-left">
-                                                <thead className="bg-slate-100 text-slate-600 font-bold sticky top-0 shadow-sm"><tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Precio</th><th className="p-3 text-center">Stock</th><th className="p-3 text-center">Acciones</th></tr></thead>
+                                            <table className="w-full text-sm text-left text-slate-700 dark:text-slate-200">
+                                                <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold sticky top-0 shadow-sm"><tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Precio</th><th className="p-3 text-center">Stock</th><th className="p-3 text-center">Acciones</th></tr></thead>
                                                 <tbody>
                                                     {catalogo.map(p => (
-                                                        <tr key={p.id} className="border-b hover:bg-slate-50 group transition-colors">
+                                                        <tr key={p.id} className="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 group transition-colors">
                                                             <td className="p-3 font-medium flex items-center gap-2"><span className="text-lg">{p.icon}</span> <div><div>{p.nombre}</div><div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">{p.codigo ? <><QrCode size={10}/> {p.codigo}</> : 'Sin código'}</div></div></td>
-                                                            <td className="p-3 text-slate-500"><span className="bg-slate-100 px-2 py-0.5 rounded-full text-xs">{p.categoria}</span></td>
-                                                            <td className="p-3 font-bold text-slate-700">${p.precio.toFixed(2)}</td>
+                                                            <td className="p-3 text-slate-500 dark:text-slate-400"><span className="bg-slate-100 dark:bg-slate-600 px-2 py-0.5 rounded-full text-xs">{p.categoria}</span></td>
+                                                            <td className="p-3 font-bold text-slate-700 dark:text-slate-200">${p.precio.toFixed(2)}</td>
                                                             <td className="p-3 text-center"><span className={`font-bold px-2 py-0.5 rounded text-xs ${p.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>{p.stock}</span></td>
                                                             <td className="p-3 flex justify-center gap-2"><button onClick={() => prepararEdicionProducto(p)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Editar"><Edit2 size={16}/></button><button onClick={() => eliminarProductoInventario(p.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Eliminar"><Trash2 size={16}/></button></td>
                                                         </tr>
@@ -1615,31 +1809,31 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                     {/* --- MODAL PRODUCTOS Y SERVICIOS (SIDEBAR ESTACIONES) --- */}
                     {modalAbierto === 'productos' && eqSel && (
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
-                             <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden modal-anim">
-                                <div className="bg-slate-800 p-4 text-white flex justify-between items-center border-b border-slate-700">
-                                    <h2 className="font-bold flex items-center gap-2"><ShoppingBag className="text-cyan-400" /> {eqSel.nombre}</h2>
-                                    <button onClick={() => setModalAbierto(null)}><X /></button>
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                             <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
+                                <div className="p-4 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-700">
+                                    <h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><ShoppingBag className="text-blue-500" /> {eqSel.nombre}</h2>
+                                    <button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"><X /></button>
                                 </div>
-                                <div className="flex flex-1 overflow-hidden bg-slate-100">
+                                <div className="flex flex-1 overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
                                     <div className="flex-1 flex overflow-hidden mr-1">
-                                        <div className="w-1/2 flex flex-col border-r border-slate-200 bg-white">
-                                            <div className="p-3 border-b bg-slate-50 flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
-                                            <div className="flex-1 overflow-y-auto p-3"><div className="grid grid-cols-1 gap-2">{catalogo.map(prod => (<button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoACuenta(prod)} className="flex items-center gap-3 p-3 bg-white border rounded-lg hover:border-cyan-500 hover:bg-cyan-50 hover:shadow-md text-left disabled:opacity-50 transition-all"><span className="text-2xl">{prod.icon}</span><div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-700 truncate">{prod.nombre}</div><div className="flex justify-between items-center mt-1"><span className="text-xs text-cyan-600 font-bold bg-cyan-50 px-2 py-0.5 rounded">${prod.precio}</span><span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>Stock: {prod.stock}</span></div></div><ChevronRight size={16} className="text-slate-300"/></button>))}</div></div>
+                                        <div className="w-1/2 flex flex-col border-r border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
+                                            <div className="flex-1 overflow-y-auto p-3"><div className="grid grid-cols-1 gap-2">{catalogo.map(prod => (<button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoACuenta(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all"><span className="text-2xl">{prod.icon}</span><div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{prod.nombre}</div><div className="flex justify-between items-center mt-1"><span className="text-xs text-cyan-600 font-bold bg-cyan-50 px-2 py-0.5 rounded">${prod.precio}</span><span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Stock: {prod.stock}</span></div></div><ChevronRight size={16} className="text-slate-300"/></button>))}</div></div>
                                         </div>
-                                        <div className="w-1/2 flex flex-col bg-white">
-                                            <div className="p-3 border-b bg-indigo-50"><h3 className="font-bold text-xs text-indigo-700 uppercase flex items-center gap-2"><Printer size={14}/> Servicios Rápidos</h3></div>
+                                        <div className="w-1/2 flex flex-col bg-white dark:bg-slate-800">
+                                            <div className="p-3 border-b bg-indigo-50 dark:bg-indigo-900/20"><h3 className="font-bold text-xs text-indigo-700 dark:text-indigo-300 uppercase flex items-center gap-2"><Printer size={14}/> Servicios Rápidos</h3></div>
                                             <div className="p-5 space-y-6 overflow-y-auto">
-                                                <div><label className="block text-xs font-bold text-slate-500 mb-2">1. Selecciona Servicio</label><div className="grid grid-cols-2 gap-3">{[{ id: 'IMPRESION_BN', label: 'Impresión B/N', icon: <FileText size={20}/>, color: 'text-slate-600' }, { id: 'IMPRESION_COLOR', label: 'Impresión Color', icon: <Printer size={20}/>, color: 'text-pink-500' }, { id: 'ESCANEO', label: 'Escaneo', icon: <ScanBarcode size={20}/>, color: 'text-blue-500' }, { id: 'ENVIO', label: 'Envío Digital', icon: <Bluetooth size={20}/>, color: 'text-indigo-500' }].map(opt => (<button key={opt.id} onClick={() => setServicioForm({...servicioForm, tipo: opt.id})} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === opt.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-sm'}`}><div className={servicioForm.tipo === opt.id ? 'text-white' : opt.color}>{opt.icon}</div>{opt.label}</button>))}</div></div>
-                                                <div className="grid grid-cols-2 gap-3"><button onClick={() => setServicioForm({ ...servicioForm, tipo: 'WIFI' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'WIFI' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-50'}`}><div className={servicioForm.tipo === 'WIFI' ? 'text-white' : 'text-emerald-500'}><Wifi size={20}/></div>WiFi ($10)</button><button onClick={() => setServicioForm({ ...servicioForm, tipo: 'ASESORIA' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'ASESORIA' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-50'}`}><div className={servicioForm.tipo === 'ASESORIA' ? 'text-white' : 'text-amber-500'}><HandHelping size={20}/></div>Asesoría ($15)</button></div>
-                                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (<div className="fade-anim"><label className="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1"><Droplet size={12}/> 2. Cobertura de Tinta</label><div className="grid grid-cols-3 gap-2">{[{ id: 'B', label: 'Básica', desc: 'Texto simple', price: PRECIOS_IMPRESION[servicioForm.tipo]['B'] }, { id: 'M', label: 'Media', desc: 'Con imágenes', price: PRECIOS_IMPRESION[servicioForm.tipo]['M'] }, { id: 'G', label: 'Alta', desc: 'Fotos / Full', price: PRECIOS_IMPRESION[servicioForm.tipo]['G'] }].map(cob => (<button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded-lg border text-left transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white border-slate-200 hover:bg-slate-50'}`}><div className="flex justify-between items-center mb-1"><span className={`font-bold text-xs ${servicioForm.cobertura === cob.id ? 'text-indigo-700' : 'text-slate-700'}`}>{cob.label}</span><span className="text-[10px] font-bold bg-slate-100 px-1.5 rounded text-slate-600">${cob.price}</span></div><div className="text-[10px] text-slate-400 leading-tight">{cob.desc}</div></button>))}</div></div>)}
-                                                {servicioForm.tipo !== 'ENVIO' && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && (<div className="fade-anim delay-75"><label className="block text-xs font-bold text-slate-500 mb-2">3. Tamaño de Papel</label><div className="flex bg-slate-100 p-1 rounded-lg">{['CARTA', 'OFICIO', 'TABLOIDE'].map(tam => ((servicioForm.tipo === 'ESCANEO' && tam === 'TABLOIDE') ? null : <button key={tam} onClick={() => setServicioForm({...servicioForm, tamano: tam})} className={`flex-1 py-2 text-xs rounded-md font-bold transition-all ${servicioForm.tamano === tam ? 'bg-white text-indigo-600 shadow-sm transform scale-105' : 'text-slate-400 hover:text-slate-600'}`}>{tam}</button>))}</div></div>)}
-                                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200"><div className="flex gap-4 items-end mb-3"><div className="w-24"><label className="block text-xs font-bold text-slate-500 mb-1">Cantidad</label><input type="number" min="1" className="w-full border-2 border-slate-300 p-2 rounded-lg font-bold text-center text-lg focus:border-indigo-500 outline-none" value={servicioForm.cantidad} onChange={e => setServicioForm({...servicioForm, cantidad: parseInt(e.target.value) || 1})} /></div><div className="flex-1 text-right"><div className="text-xs text-slate-400 uppercase font-bold">Total Estimado</div><div className="text-2xl font-black text-slate-800 tracking-tight">${(() => { const { tipo, tamano, cobertura } = servicioForm; let p = 0; if(tipo === 'ENVIO') p = OTROS_SERVICIOS['ENVIO']['GENERAL']; else if(tipo === 'ESCANEO') p = OTROS_SERVICIOS['ESCANEO'][tamano]; else if (tipo === 'WIFI') p = OTROS_SERVICIOS['WIFI']['GENERAL']; else if (tipo === 'ASESORIA') p = OTROS_SERVICIOS['ASESORIA']['GENERAL']; else { const base = PRECIOS_IMPRESION[tipo] ? PRECIOS_IMPRESION[tipo][cobertura] : 0; const mod = MODIFICADOR_TAMANO[tamano]; p = mod.op === 'add' ? base + mod.val : base * mod.val; } if (servicioForm.cantidad > 10 && tipo !== 'WIFI' && tipo !== 'ASESORIA') p = p * 0.9; return (p * servicioForm.cantidad).toFixed(2); })()}</div>{servicioForm.cantidad > 10 && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && <div className="text-[10px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-1">✨ 10% Descuento Mayoreo</div>}</div></div><button onClick={agregarServicioACuenta} className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded-lg font-bold shadow-lg flex justify-center items-center gap-2 transition-all transform active:scale-95"><CheckCircle size={20} className="text-emerald-400"/> Agregar a la Cuenta</button></div>
-                                                <div className="mt-4 pt-4 border-t border-slate-200"><label className="block text-xs font-bold text-slate-500 mb-2">Agregar Cargo Manual</label><div className="flex gap-2"><input className="flex-1 border p-2 rounded text-sm" placeholder="Concepto (ej. Engargolado)" value={manualItemForm.nombre} onChange={e => setManualItemForm({...manualItemForm, nombre: e.target.value})} /><input className="w-20 border p-2 rounded text-sm" type="number" placeholder="$" value={manualItemForm.precio} onChange={e => setManualItemForm({...manualItemForm, precio: e.target.value})} /><button onClick={agregarManualACuenta} className="bg-slate-700 text-white px-3 rounded hover:bg-slate-800"><PlusCircle size={18}/></button></div></div>
+                                                <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">1. Selecciona Servicio</label><div className="grid grid-cols-2 gap-3">{[{ id: 'IMPRESION_BN', label: 'Impresión B/N', icon: <FileText size={20}/>, color: 'text-slate-600' }, { id: 'IMPRESION_COLOR', label: 'Impresión Color', icon: <Printer size={20}/>, color: 'text-pink-500' }, { id: 'ESCANEO', label: 'Escaneo', icon: <ScanBarcode size={20}/>, color: 'text-blue-500' }, { id: 'ENVIO', label: 'Envío Digital', icon: <Bluetooth size={20}/>, color: 'text-indigo-500' }].map(opt => (<button key={opt.id} onClick={() => setServicioForm({...servicioForm, tipo: opt.id})} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === opt.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-200' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm'}`}><div className={servicioForm.tipo === opt.id ? 'text-white' : opt.color}>{opt.icon}</div>{opt.label}</button>))}</div></div>
+                                                <div className="grid grid-cols-2 gap-3"><button onClick={() => setServicioForm({ ...servicioForm, tipo: 'WIFI' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'WIFI' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}><div className={servicioForm.tipo === 'WIFI' ? 'text-white' : 'text-emerald-500'}><Wifi size={20}/></div>WiFi (${config.precios.otros.wifi})</button><button onClick={() => setServicioForm({ ...servicioForm, tipo: 'ASESORIA' })} className={`p-3 rounded-lg border text-sm font-bold flex flex-col items-center gap-2 transition-all hover:scale-105 ${servicioForm.tipo === 'ASESORIA' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}><div className={servicioForm.tipo === 'ASESORIA' ? 'text-white' : 'text-amber-500'}><HandHelping size={20}/></div>Asesoría (${config.precios.otros.asesoria})</button></div>
+                                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (<div className="fade-anim"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1"><Droplet size={12}/> 2. Cobertura de Tinta</label><div className="grid grid-cols-3 gap-2">{[{ id: 'B', label: 'Básica', desc: 'Texto simple', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['B'] }, { id: 'M', label: 'Media', desc: 'Con imágenes', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['M'] }, { id: 'G', label: 'Alta', desc: 'Fotos / Full', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['G'] }].map(cob => (<button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded-lg border text-left transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}><div className="flex justify-between items-center mb-1"><span className={`font-bold text-xs ${servicioForm.cobertura === cob.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>{cob.label}</span><span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-600 px-1.5 rounded text-slate-600 dark:text-slate-300">${cob.price}</span></div><div className="text-[10px] text-slate-400 leading-tight">{cob.desc}</div></button>))}</div></div>)}
+                                                {servicioForm.tipo !== 'ENVIO' && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && (<div className="fade-anim delay-75"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">3. Tamaño de Papel</label><div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">{['CARTA', 'OFICIO', 'TABLOIDE'].map(tam => ((servicioForm.tipo === 'ESCANEO' && tam === 'TABLOIDE') ? null : <button key={tam} onClick={() => setServicioForm({...servicioForm, tamano: tam})} className={`flex-1 py-2 text-xs rounded-md font-bold transition-all ${servicioForm.tamano === tam ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-300 shadow-sm transform scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>{tam}</button>))}</div></div>)}
+                                                <div className="bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600"><div className="flex gap-4 items-end mb-3"><div className="w-24"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cantidad</label><input type="number" min="1" className="w-full border-2 border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 p-2 rounded-lg font-bold text-center text-lg focus:border-indigo-500 outline-none dark:text-white" value={servicioForm.cantidad} onChange={e => setServicioForm({...servicioForm, cantidad: parseInt(e.target.value) || 1})} /></div><div className="flex-1 text-right"><div className="text-xs text-slate-400 uppercase font-bold">Total Estimado</div><div className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">${(calcularPrecio(servicioForm.tipo, servicioForm.tamano, servicioForm.cobertura, servicioForm.cantidad) * servicioForm.cantidad).toFixed(2)}</div>{servicioForm.cantidad > 10 && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && <div className="text-[10px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-1">✨ 10% Descuento Mayoreo</div>}</div></div><button onClick={agregarServicioACuenta} className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded-lg font-bold shadow-lg flex justify-center items-center gap-2 transition-all transform active:scale-95"><CheckCircle size={20} className="text-emerald-400"/> Agregar a la Cuenta</button></div>
+                                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Agregar Cargo Manual</label><div className="flex gap-2"><input className="flex-1 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" placeholder="Concepto (ej. Engargolado)" value={manualItemForm.nombre} onChange={e => setManualItemForm({...manualItemForm, nombre: e.target.value})} /><input className="w-20 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" type="number" placeholder="$" value={manualItemForm.precio} onChange={e => setManualItemForm({...manualItemForm, precio: e.target.value})} /><button onClick={agregarManualACuenta} className="bg-slate-700 text-white px-3 rounded hover:bg-slate-800"><PlusCircle size={18}/></button></div></div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="w-96 bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20"><div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center"><div><h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Cuenta Actual</h3><p className="text-[10px] text-slate-400">Resumen de consumos</p></div><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span></div><div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50">{eqSel.cuenta.map((i) => (<div key={i.uid} className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 group relative hover:border-indigo-300 transition-all"><div className="flex justify-between items-start pr-6"><div><div className="font-bold text-sm text-slate-800 leading-tight">{i.nombre}</div>{i.esManual && <span className="text-[10px] bg-slate-100 px-1 rounded text-slate-500">Manual</span>}</div><div className="text-right"><div className="font-bold text-emerald-600 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="text-[10px] text-slate-400">{i.cantidad} x ${i.precio}</div></div></div><button onClick={() => eliminarProductoDeCuenta(i.uid)} className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors" title="Eliminar"><X size={14}/></button></div>))}{eqSel.cuenta.length === 0 && (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span><span className="text-[10px]">Agregue productos o servicios</span></div>)}</div><div className="bg-white border-t border-slate-200 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"><div className="space-y-1 mb-4"><div className="flex justify-between text-xs text-slate-500"><span>Subtotal Productos</span><span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-slate-500"><span>Renta Estimada (Tiempo)</span><span>${calcularTotalRenta(eqSel).toFixed(2)}</span></div></div><div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 mb-4"><span className="font-bold text-lg text-slate-700">Total a Pagar</span><span className="font-black text-2xl text-indigo-600 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span></div><button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"><Ticket size={18}/> Cobrar Cuenta</button></div></div>
+                                    <div className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20"><div className="p-4 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center"><div><h3 className="font-bold text-slate-700 dark:text-white text-sm uppercase tracking-wide">Cuenta Actual</h3><p className="text-[10px] text-slate-400">Resumen de consumos</p></div><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span></div><div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">{eqSel.cuenta.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 group relative hover:border-indigo-300 transition-all"><div className="flex justify-between items-start pr-6"><div><div className="font-bold text-sm text-slate-800 dark:text-white leading-tight">{i.nombre}</div>{i.esManual && <span className="text-[10px] bg-slate-100 dark:bg-slate-600 px-1 rounded text-slate-500 dark:text-slate-300">Manual</span>}</div><div className="text-right"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="text-[10px] text-slate-400">{i.cantidad} x ${i.precio}</div></div></div><button onClick={() => eliminarProductoDeCuenta(i.uid)} className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full transition-colors" title="Eliminar"><X size={14}/></button></div>))}{eqSel.cuenta.length === 0 && (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span><span className="text-[10px]">Agregue productos o servicios</span></div>)}</div><div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"><div className="space-y-1 mb-4"><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Subtotal Productos</span><span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Renta Estimada (Tiempo)</span><span>${calcularTotalRenta(eqSel).toFixed(2)}</span></div></div><div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 dark:border-slate-600 mb-4"><span className="font-bold text-lg text-slate-700 dark:text-white">Total a Pagar</span><span className="font-black text-2xl text-indigo-600 dark:text-indigo-400 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span></div><button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"><Ticket size={18}/> Cobrar Cuenta</button></div></div>
                                 </div>
                              </div>
                         </div>
@@ -1647,13 +1841,13 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
 
                     {/* --- MODAL DE CONFIRMACIÓN DE RESET --- */}
                     {confirmarResetId && (
-                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] fade-anim">
-                            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full modal-anim text-center">
+                        <div className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center z-[80] fade-anim">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl max-w-sm w-full modal-anim text-center">
                                 <div className="mb-4 text-rose-600 flex justify-center"><AlertTriangle size={48}/></div>
-                                <h3 className="font-bold text-lg mb-2 text-slate-800">¿Reiniciar Estación?</h3>
+                                <h3 className="font-bold text-lg mb-2 text-slate-800 dark:text-white">¿Reiniciar Estación?</h3>
                                 <p className="text-sm text-slate-500 mb-6">Se perderá el tiempo y el consumo actual sin cobrar. Esta acción no se puede deshacer.</p>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setConfirmarResetId(null)} className="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                                    <button onClick={() => setConfirmarResetId(null)} className="flex-1 border dark:border-slate-600 py-2 rounded text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</button>
                                     <button onClick={ejecutarReset} className="flex-1 bg-rose-600 text-white py-2 rounded font-bold hover:bg-rose-700 shadow-lg">Sí, Reiniciar</button>
                                 </div>
                             </div>
@@ -1692,6 +1886,11 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                                 <div className="bg-indigo-600 p-4 text-white flex justify-between items-center"><h2 className="font-bold flex gap-2"><Timer/> Prepago</h2><button onClick={() => setModalAbierto(null)}><X/></button></div>
                                 <div className="p-6 space-y-4">
                                     <div className="text-center text-sm text-slate-500 mb-4">Configurando: <span className="font-bold text-slate-800">{eqSel.nombre}</span><br/>Tarifa: ${eqSel.precioHora}/hr</div>
+                                    
+                                    <div className="grid grid-cols-3 gap-2 mb-2">
+                                        {[30, 60, 90].map(m => <button key={m} onClick={() => setPrepagoData({ minutos: m, dinero: '' })} className={`py-2 rounded-lg border text-xs font-bold transition-all ${prepagoData.minutos == m ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}>{m} Min<br/><span className="font-normal opacity-70">${((m/60)*eqSel.precioHora).toFixed(2)}</span></button>)}
+                                    </div>
+
                                     <div><label className="block text-xs font-bold text-slate-500 mb-1">Por Dinero ($)</label><div className="relative"><span className="absolute left-3 top-2.5 text-slate-400 font-bold">$</span><input type="number" className="w-full border-2 border-slate-200 rounded-lg p-2 pl-8 focus:border-indigo-500 outline-none font-bold text-lg" placeholder="0.00" value={prepagoData.dinero} onChange={e => setPrepagoData({ dinero: e.target.value, minutos: '' })} autoFocus /></div>{prepagoData.dinero && <p className="text-right text-xs text-emerald-600 font-bold mt-1">= {((parseFloat(prepagoData.dinero) / eqSel.precioHora) * 60).toFixed(0)} min</p>}</div>
                                     <div className="flex items-center gap-2"><div className="h-px bg-slate-200 flex-1"></div><span className="text-xs text-slate-400">O BIEN</span><div className="h-px bg-slate-200 flex-1"></div></div>
                                     <div><label className="block text-xs font-bold text-slate-500 mb-1">Por Tiempo (Minutos)</label><input type="number" className="w-full border-2 border-slate-200 rounded-lg p-2 focus:border-indigo-500 outline-none text-center" placeholder="Ej. 30" value={prepagoData.minutos} onChange={e => setPrepagoData({ minutos: e.target.value, dinero: '' })} /></div>
@@ -1754,27 +1953,30 @@ window.LUGAR_EXPEDICION = window.LUGAR_EXPEDICION || "Progreso, Hidalgo";
                         </div>
                     )}
 
-                    {/* --- CHAT I.A. --- */}
-                    {chatAbierto && (
-                        <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-xl shadow-2xl flex flex-col border border-slate-200 z-[60] modal-anim overflow-hidden">
-                            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-3 text-white flex justify-between items-center">
-                                <div className="flex items-center gap-2"><Bot size={18}/><span className="font-bold text-sm">Asistente IA</span></div>
-                                <button onClick={() => setChatAbierto(false)} className="hover:bg-white/20 p-1 rounded"><X size={16}/></button>
-                            </div>
-                            <div className="flex-1 bg-slate-50 p-3 overflow-y-auto space-y-3">
-                                {mensajesChat.map((msg, i) => (
-                                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} msg-anim`}>
-                                        <div className={`max-w-[85%] p-2 rounded-lg text-xs ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm'}`}>
-                                            {msg.text}
-                                        </div>
+                    {/* --- MODAL LEGAL / INFO --- */}
+                    {modalAbierto === 'legal' && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[90] p-4 fade-anim">
+                            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden modal-anim border border-white/10">
+                                <div className="bg-slate-800 p-6 text-white text-center relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 opacity-50"></div>
+                                    <div className="relative z-10">
+                                        <h2 className="text-3xl font-black tracking-tight mb-1">FasTPV</h2>
+                                        <p className="text-blue-100 text-sm font-mono">Versión 1.0.0</p>
                                     </div>
-                                ))}
-                                {cargandoAI && <div className="text-xs text-slate-400 italic text-center animate-pulse">Escribiendo...</div>}
-                                <div ref={chatEndRef}></div>
-                            </div>
-                            <div className="p-2 border-t bg-white flex gap-2">
-                                <input className="flex-1 border rounded-full px-3 py-1.5 text-xs outline-none focus:border-indigo-500" placeholder="Escribe tu duda..." value={inputChat} onChange={e => setInputChat(e.target.value)} onKeyDown={e => e.key === 'Enter' && enviarMensajeIA()} />
-                                <button onClick={enviarMensajeIA} className="bg-indigo-600 text-white p-1.5 rounded-full hover:bg-indigo-700"><Send size={16}/></button>
+                                    <button onClick={() => setModalAbierto(null)} className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-full transition-colors"><X size={20}/></button>
+                                </div>
+                                <div className="p-8 space-y-6 text-center">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 dark:text-white mb-2 flex items-center justify-center gap-2"><MapPin size={16} className="text-rose-500"/> Desarrollado por Ulisoft</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">Orgullosamente hecho en <span className="font-bold text-slate-700 dark:text-slate-300">Hidalgo, México</span> 🇲🇽</p>
+                                    </div>
+                                    <div className="text-xs text-slate-400 dark:text-slate-500 space-y-2 border-t dark:border-slate-800 pt-4">
+                                        <p><strong>Aviso de Privacidad:</strong> Este software almacena datos únicamente de manera local en el dispositivo. No se transmiten datos a servidores externos ni a terceros.</p>
+                                        <p><strong>Licencia de Uso:</strong> Software propietario para gestión de puntos de venta y control de tiempo. Prohibida su redistribución no autorizada.</p>
+                                        <p>© {new Date().getFullYear()} Ulisoft Development. Todos los derechos reservados.</p>
+                                    </div>
+                                    <button onClick={() => setModalAbierto(null)} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-6 py-2 rounded-full font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Cerrar</button>
+                                </div>
                             </div>
                         </div>
                     )}
