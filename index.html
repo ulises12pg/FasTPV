@@ -114,12 +114,12 @@
             'Settings', 'Wifi', 'Smartphone', 'UserPlus', 'Star', 'Trophy', 'ArrowRightLeft', 
             'Ban', 'Lock', 'LogOut', 'Truck', 'ScanBarcode', 'UserCog', 'Shield',
             'Clock', 'Timer', 'Bell', 'Key', 'FileText', 'Bluetooth', 'Camera', 'CameraOff', 'QrCode', 'Droplet', 'ChevronRight', 'CircleDollarSign', 'RotateCcw', 'Store', 'HandHelping', 'Database', 'Download', 'Upload', 'Wallet',
-            'Info', 'MapPin', 'Building'
+            'Info', 'MapPin', 'Building', 'Minus', 'History', 'FileClock'
         ];
 
         const Icons = {};
         iconNames.forEach(name => { Icons[name] = (props) => <LucideIconWrapper name={name} {...props} />; });
-        const { Monitor, Gamepad2, Play, Pause, Square, Coffee, X, ShoppingBag, Users, Ticket, PlusCircle, CheckCircle, Package, Trash2, Edit2, Settings, Ban, Lock, LogOut, Truck, ScanBarcode, UserCog, Shield, Clock, Timer, Bell, Trophy, ArrowRightLeft, Key, Save, Printer, FileText, Bluetooth, Camera, CameraOff, QrCode, Droplet, ChevronRight, CircleDollarSign, RotateCcw, Store, Wifi, HandHelping, UserPlus, Database, Download, Upload, AlertTriangle, Wallet, DollarSign, Percent, AlertCircle, Smartphone, Star, Info, MapPin, Building } = Icons;
+        const { Monitor, Gamepad2, Play, Pause, Square, Coffee, X, ShoppingBag, Users, Ticket, PlusCircle, CheckCircle, Package, Trash2, Edit2, Settings, Ban, Lock, LogOut, Truck, ScanBarcode, UserCog, Shield, Clock, Timer, Bell, Trophy, ArrowRightLeft, Key, Save, Printer, FileText, Bluetooth, Camera, CameraOff, QrCode, Droplet, ChevronRight, CircleDollarSign, RotateCcw, Store, Wifi, HandHelping, UserPlus, Database, Download, Upload, AlertTriangle, Wallet, DollarSign, Percent, AlertCircle, Smartphone, Star, Info, MapPin, Building, Minus, History, FileClock } = Icons;
 
         // --- DATOS INICIALES ---
         const USUARIOS_DEFAULT = [
@@ -245,6 +245,7 @@
             const [catalogo, setCatalogo] = useState(() => JSON.parse(localStorage.getItem('sys-catalogo')) || PRODUCTOS_BASE_DEFAULT);
             const [ventas, setVentas] = useState(() => JSON.parse(localStorage.getItem('sys-ventas')) || []);
             const [clientes, setClientes] = useState(() => JSON.parse(localStorage.getItem('sys-clientes')) || CLIENTES_INICIALES);
+            const [cortes, setCortes] = useState(() => JSON.parse(localStorage.getItem('sys-cortes')) || []);
             
             // CONFIG Y CAJA
             const [config, setConfig] = useState(() => {
@@ -295,6 +296,16 @@
             const [mostrarNuevoCliente, setMostrarNuevoCliente] = useState(false);
             const [nuevoClienteNombre, setNuevoClienteNombre] = useState('');
             const [pagoConDirecto, setPagoConDirecto] = useState(''); 
+            const [busquedaDirecta, setBusquedaDirecta] = useState('');
+            
+            // TOASTS SYSTEM
+            const [toasts, setToasts] = useState([]);
+            const addToast = (msg, type = 'info') => {
+                const id = Date.now() + Math.random();
+                setToasts(prev => [...prev, { id, msg, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+            };
+            const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
             
             // UI Modals
             const [modalAbierto, setModalAbierto] = useState(null); 
@@ -331,13 +342,14 @@
                 localStorage.setItem('sys-usuarios', JSON.stringify(usuarios));
                 localStorage.setItem('sys-config', JSON.stringify(config));
                 localStorage.setItem('sys-caja', JSON.stringify(caja));
-            }, [equipos, ventas, catalogo, clientes, usuarios, config, caja]);
+                localStorage.setItem('sys-cortes', JSON.stringify(cortes));
+            }, [equipos, ventas, catalogo, clientes, usuarios, config, caja, cortes]);
 
             // SEGURIDAD
             useEffect(() => {
                 if (usuarioActual && usuarioActual.id === 1 && usuarioActual.pin === '1234' && modalAbierto !== 'cambiar_pin') {
                     setTimeout(() => {
-                        alert("⚠️ ADVERTENCIA DE SEGURIDAD\n\nEstás utilizando la contraseña predeterminada (1234).\nPor favor, cámbiala ahora.");
+                        addToast("⚠️ ADVERTENCIA DE SEGURIDAD\nEstás utilizando la contraseña predeterminada (1234).\nPor favor, cámbiala ahora.", 'warning');
                         setModalAbierto('cambiar_pin');
                     }, 500);
                 }
@@ -379,11 +391,11 @@
                     const startCamera = async () => {
                         try {
                             const Html5Qrcode = window.Html5Qrcode;
-                            if(!Html5Qrcode) return alert("Librería QR no cargada");
+                            if(!Html5Qrcode) return addToast("Librería QR no cargada", 'error');
                             const html5QrCode = new Html5Qrcode("reader");
                             html5QrCodeRef.current = html5QrCode;
                             await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (t, r) => handleBarcodeScan(t), (e) => {});
-                        } catch (err) { alert("Error al iniciar cámara: " + err); setShowCamera(false); }
+                        } catch (err) { addToast("Error al iniciar cámara: " + err, 'error'); setShowCamera(false); }
                     };
                     setTimeout(startCamera, 100);
                 } else { stopCamera(); }
@@ -422,7 +434,7 @@
                             agregarProductoACuenta(producto, false);
                         }
                     }
-                    else alert(producto ? "¡Sin stock!" : "Producto no encontrado.");
+                    else addToast(producto ? "¡Sin stock!" : "Producto no encontrado.", 'error');
                 } else if (modalAbierto === 'inventario') {
                     const producto = catalogo.find(p => p.codigo === code);
                     if (producto) setItemForm(producto);
@@ -486,7 +498,7 @@
             const verificarCaja = () => {
                 if (!caja.activa) {
                     playSound('warning');
-                    alert("⚠️ DEBES INICIAR TURNO EN CAJA PRIMERO\n\nAntes de realizar cualquier operación, ingresa el fondo inicial.");
+                    addToast("⚠️ DEBES INICIAR TURNO EN CAJA PRIMERO\nAntes de realizar cualquier operación, ingresa el fondo inicial.", 'warning');
                     setModalAbierto('caja');
                     return false;
                 }
@@ -495,19 +507,33 @@
 
             // --- GESTIÓN CAJA ---
             const abrirCaja = () => {
-                if (!cajaForm.fondo) return alert("Ingresa un fondo inicial");
+                if (!cajaForm.fondo) return addToast("Ingresa un fondo inicial", 'warning');
                 setCaja({ activa: true, fondo: parseFloat(cajaForm.fondo), inicio: new Date().toISOString() });
                 setCajaForm({ fondo: '' });
-                alert("Turno iniciado correctamente.");
+                addToast("Turno iniciado correctamente.", 'success');
             };
 
             const cerrarCaja = () => {
                 if(confirm("¿Seguro que deseas cerrar el turno y hacer corte? Se generará el reporte PDF.")) {
                     const ventasTurno = obtenerVentasTurno();
+                    const totalVentas = ventasTurno.reduce((acc, v) => acc + (v.cancelada ? 0 : v.total), 0);
+                    
+                    const nuevoCorte = {
+                        id: Date.now(),
+                        fecha: new Date().toISOString(),
+                        inicio: caja.inicio,
+                        fondo: caja.fondo,
+                        totalVentas: totalVentas,
+                        totalCaja: caja.fondo + totalVentas,
+                        usuario: usuarioActual.nombre,
+                        ventasSnapshot: ventasTurno // Guardamos snapshot para reimpresión exacta
+                    };
+                    
+                    setCortes(prev => [nuevoCorte, ...prev]);
                     generarReporteCaja(caja, ventasTurno); // Generar PDF Carta
                     
                     setCaja({ activa: false, fondo: 0, inicio: null });
-                    alert("Turno cerrado. Reporte generado.");
+                    addToast("Turno cerrado. Reporte generado.", 'success');
                     setModalAbierto(null);
                 }
             };
@@ -516,10 +542,55 @@
                 if (!caja.inicio) return [];
                 return ventas.filter(v => new Date(v.fecha) >= new Date(caja.inicio));
             };
+            
+            const cancelarVenta = (id) => {
+                if (usuarioActual.rol !== 'admin') return addToast("Acceso denegado. Solo administradores.", 'error');
+                const venta = ventas.find(v => v.id === id);
+                if (!venta) return;
+                if (venta.cancelada) return addToast("Esta venta ya está cancelada.", 'warning');
+                
+                // Validar que sea del mismo día
+                const hoy = new Date().toDateString();
+                const fechaVenta = new Date(venta.fecha).toDateString();
+                if (hoy !== fechaVenta) return addToast("Solo se pueden cancelar ventas del día actual.", 'warning');
+                
+                if (confirm(`¿Cancelar venta Folio ${venta.id.toString().slice(-4)} de $${venta.total.toFixed(2)}?\nSe devolverá el stock y los puntos.`)) {
+                    // 1. Devolver Stock
+                    const nCat = [...catalogo];
+                    (venta.productos || []).forEach(p => {
+                        if (p.idCatalogo) {
+                            const idx = nCat.findIndex(c => c.id === p.idCatalogo);
+                            if (idx !== -1) nCat[idx].stock += (p.cantidad || 1);
+                        }
+                    });
+                    setCatalogo(nCat);
+                    
+                    // 2. Retirar Puntos (si aplica)
+                    if (venta.puntosGanados > 0) {
+                        const clienteNombre = venta.cliente;
+                        setClientes(prev => prev.map(c => {
+                            if (c.nombre === clienteNombre) {
+                                return { ...c, puntos: Math.max(0, (c.puntos || 0) - venta.puntosGanados) };
+                            }
+                            return c;
+                        }));
+                    }
+                    
+                    // 3. Marcar cancelada
+                    setVentas(prev => prev.map(v => v.id === id ? { ...v, cancelada: true } : v));
+                    addToast("Venta cancelada correctamente.", 'success');
+                }
+            };
+            
+            const reimprimirCorte = (corte) => {
+                // Reconstruir objeto caja simulado para el reporte
+                const cajaSimulada = { fondo: corte.fondo, inicio: corte.inicio };
+                generarReporteCaja(cajaSimulada, corte.ventasSnapshot || []);
+            };
 
             // --- GESTIÓN ESTACIONES (CRUD) ---
             const guardarEstacion = () => {
-                if (!estacionForm.nombre || !estacionForm.precioHora) return alert("Faltan datos");
+                if (!estacionForm.nombre || !estacionForm.precioHora) return addToast("Faltan datos", 'warning');
                 const nueva = {
                     id: estacionForm.id || Date.now(),
                     nombre: estacionForm.nombre,
@@ -543,7 +614,7 @@
 
             // --- GESTIÓN INVENTARIO ---
             const guardarProductoInventario = () => {
-                if (!itemForm.nombre || !itemForm.precio) return alert("Faltan datos");
+                if (!itemForm.nombre || !itemForm.precio) return addToast("Faltan datos", 'warning');
                 const nuevo = { ...itemForm, id: itemForm.id || Date.now(), precio: parseFloat(itemForm.precio), stock: parseInt(itemForm.stock) || 0, icon: itemForm.categoria === 'Bebidas' ? '🥤' : '📦' };
                 if (itemForm.id) setCatalogo(prev => prev.map(p => p.id === itemForm.id ? { ...p, ...nuevo } : p));
                 else setCatalogo(prev => [...prev, nuevo]);
@@ -600,11 +671,20 @@
                 setVentaDirectaClienteId(1); 
                 setMostrarNuevoCliente(false);
                 setPagoConDirecto(''); // Reset pagoCon
+                setBusquedaDirecta('');
                 setModalAbierto('venta_directa');
             };
 
             const agregarProductoDirecto = (prod) => {
-                setCarritoDirecto(prev => [...prev, { uid: Date.now(), idCatalogo: prod.id, nombre: prod.nombre, precio: parseFloat(prod.precio), cantidad: 1 }]);
+                setCarritoDirecto(prev => {
+                    const idx = prev.findIndex(p => p.idCatalogo === prod.id);
+                    if (idx !== -1) {
+                        const copia = [...prev];
+                        copia[idx] = { ...copia[idx], cantidad: (copia[idx].cantidad || 1) + 1 };
+                        return copia;
+                    }
+                    return [...prev, { uid: Date.now(), idCatalogo: prod.id, nombre: prod.nombre, precio: parseFloat(prod.precio), cantidad: 1 }];
+                });
                 playSound('scan');
             };
 
@@ -622,34 +702,63 @@
                 // Para consistencia con el sistema actual, guardamos el precio unitario FINAL (con descuento si aplica)
                 const precioFinal = calcularPrecio(tipo, tamano, cobertura, cantidad);
                 
-                setCarritoDirecto(prev => [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }]);
+                const nombreFinal = nombreServicio + (cantidad > 10 ? ' (-10%)' : '');
+                
+                setCarritoDirecto(prev => {
+                    const idx = prev.findIndex(p => p.nombre === nombreFinal && p.precio === parseFloat(precioFinal));
+                    if (idx !== -1) {
+                        const copia = [...prev];
+                        copia[idx] = { ...copia[idx], cantidad: (copia[idx].cantidad || 1) + (parseInt(cantidad) || 1) };
+                        return copia;
+                    }
+                    return [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }];
+                });
                 setServicioForm({ ...servicioForm, cantidad: 1 });
                 playSound('success');
             };
 
             const agregarManualDirecto = () => {
                 if(!manualItemForm.nombre || !manualItemForm.precio) return;
-                setCarritoDirecto(prev => [...prev, { uid: Date.now(), idCatalogo: null, nombre: manualItemForm.nombre + ' (Manual)', precio: parseFloat(manualItemForm.precio), cantidad: 1, esManual: true }]);
+                const nombreFinal = manualItemForm.nombre + ' (Manual)';
+                const precioFinal = parseFloat(manualItemForm.precio);
+                setCarritoDirecto(prev => {
+                    const idx = prev.findIndex(p => p.nombre === nombreFinal && p.precio === precioFinal);
+                    if (idx !== -1) {
+                        const copia = [...prev];
+                        copia[idx] = { ...copia[idx], cantidad: (copia[idx].cantidad || 1) + 1 };
+                        return copia;
+                    }
+                    return [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: precioFinal, cantidad: 1, esManual: true }];
+                });
                 setManualItemForm({nombre: '', precio: ''});
                 playSound('success');
             };
 
             const agregarClienteRapido = () => {
-                if(!nuevoClienteNombre.trim()) return alert("Nombre vacío");
+                if(!nuevoClienteNombre.trim()) return addToast("Nombre vacío", 'warning');
                 const nuevo = { id: Date.now(), nombre: nuevoClienteNombre, puntos: 0 };
                 setClientes(prev => [...prev, nuevo]);
                 setVentaDirectaClienteId(nuevo.id);
                 setNuevoClienteNombre('');
                 setMostrarNuevoCliente(false);
-                alert("Cliente registrado y seleccionado.");
+                addToast("Cliente registrado y seleccionado.", 'success');
             };
 
             const eliminarItemDirecto = (uid) => {
                 setCarritoDirecto(prev => prev.filter(i => i.uid !== uid));
             };
 
+            const disminuirCantidadDirecto = (uid) => {
+                setCarritoDirecto(prev => prev.map(i => {
+                    if (i.uid === uid) {
+                        return { ...i, cantidad: (i.cantidad || 1) - 1 };
+                    }
+                    return i;
+                }).filter(i => i.cantidad > 0));
+            };
+
             const cobrarVentaDirecta = async () => {
-                if (carritoDirecto.length === 0) return alert("El carrito está vacío.");
+                if (carritoDirecto.length === 0) return addToast("El carrito está vacío.", 'warning');
                 
                 setProcesando(true);
                 await new Promise(resolve => setTimeout(resolve, 600));
@@ -664,7 +773,7 @@
                 if (cliente.id !== 1) { 
                     puntosGanados = Math.floor(total * RATIO_PUNTOS);
                     setClientes(prev => prev.map(c => c.id === cliente.id ? { ...c, puntos: (c.puntos || 0) + puntosGanados } : c));
-                    if(puntosGanados > 0) alert(`🎉 ¡${cliente.nombre} ganó ${puntosGanados} Puntos!`);
+                    if(puntosGanados > 0) addToast(`🎉 ¡${cliente.nombre} ganó ${puntosGanados} Puntos!`, 'success');
                 }
                 
                 const nCat = [...catalogo];
@@ -682,7 +791,8 @@
                     subtotalRenta: 0,
                     pagoCon: pagoCon, 
                     cambio: cambio,
-                    atendio: usuarioActual.nombre 
+                    atendio: usuarioActual.nombre,
+                    cancelada: false
                 };
                 
                 setVentas(prev => [...prev, venta]);
@@ -697,7 +807,7 @@
             // --- FUNCIONES EXPORTAR / IMPORTAR ---
             const handleExport = () => {
                 const data = {
-                    equipos, ventas, catalogo, clientes, usuarios, config, caja
+                    equipos, ventas, catalogo, clientes, usuarios, config, caja, cortes
                 };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -707,7 +817,7 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                alert("✅ Respaldo descargado correctamente. Guarde este archivo en un lugar seguro.");
+                addToast("✅ Respaldo descargado correctamente. Guarde este archivo en un lugar seguro.", 'success');
             };
 
             const handleImport = (e) => {
@@ -726,15 +836,16 @@
                                 if(data.usuarios) localStorage.setItem('sys-usuarios', JSON.stringify(data.usuarios));
                                 if(data.config) localStorage.setItem('sys-config', JSON.stringify(data.config));
                                 if(data.caja) localStorage.setItem('sys-caja', JSON.stringify(data.caja));
+                                if(data.cortes) localStorage.setItem('sys-cortes', JSON.stringify(data.cortes));
                                 
-                                alert("✅ Datos importados correctamente. El sistema se reiniciará para aplicar cambios.");
-                                window.location.reload();
+                                addToast("✅ Datos importados correctamente. El sistema se reiniciará para aplicar cambios.", 'success');
+                                setTimeout(() => window.location.reload(), 2000);
                             }
                         } else {
-                            alert("❌ Error: El archivo no tiene el formato válido de SysQuantic.");
+                            addToast("❌ Error: El archivo no tiene el formato válido de SysQuantic.", 'error');
                         }
                     } catch (err) {
-                        alert("❌ Error al leer el archivo: " + err);
+                        addToast("❌ Error al leer el archivo: " + err, 'error');
                     }
                 };
                 reader.readAsText(file);
@@ -743,15 +854,33 @@
             // --- SERVICIOS ESTACIONES ---
             const agregarProductoACuenta = (prod) => {
                  setEquipos(prev => prev.map(eq => {
-                    if (eq.id === equipoSeleccionadoId) return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: prod.id, nombre: prod.nombre, precio: parseFloat(prod.precio), cantidad: 1 }] };
+                    if (eq.id === equipoSeleccionadoId) {
+                        const idx = eq.cuenta.findIndex(p => p.idCatalogo === prod.id);
+                        if (idx !== -1) {
+                            const nc = [...eq.cuenta];
+                            nc[idx] = { ...nc[idx], cantidad: (nc[idx].cantidad || 1) + 1 };
+                            return { ...eq, cuenta: nc };
+                        }
+                        return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: prod.id, nombre: prod.nombre, precio: parseFloat(prod.precio), cantidad: 1 }] };
+                    }
                     return eq;
                  }));
             };
             
             const agregarManualACuenta = () => {
                 if(!manualItemForm.nombre || !manualItemForm.precio) return;
+                const nombreFinal = manualItemForm.nombre + ' (Manual)';
+                const precioFinal = parseFloat(manualItemForm.precio);
                 setEquipos(prev => prev.map(eq => {
-                    if (eq.id === equipoSeleccionadoId) return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: manualItemForm.nombre + ' (Manual)', precio: parseFloat(manualItemForm.precio), cantidad: 1, esManual: true }] };
+                    if (eq.id === equipoSeleccionadoId) {
+                        const idx = eq.cuenta.findIndex(p => p.nombre === nombreFinal && p.precio === precioFinal);
+                        if (idx !== -1) {
+                            const nc = [...eq.cuenta];
+                            nc[idx] = { ...nc[idx], cantidad: (nc[idx].cantidad || 1) + 1 };
+                            return { ...eq, cuenta: nc };
+                        }
+                        return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: precioFinal, cantidad: 1, esManual: true }] };
+                    }
                     return eq;
                 }));
                 setManualItemForm({nombre: '', precio: ''});
@@ -768,13 +897,35 @@
                 else if (tipo === 'ASESORIA') nombreServicio = 'Asesoría / Apoyo Técnico';
                 else nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
 
+                const nombreFinal = nombreServicio + (cantidad > 10 ? ' (-10%)' : '');
+
                 setEquipos(prev => prev.map(eq => {
-                    if (eq.id === equipoSeleccionadoId) return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: nombreServicio + (cantidad > 10 ? ' (-10%)' : ''), precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }] };
+                    if (eq.id === equipoSeleccionadoId) {
+                        const idx = eq.cuenta.findIndex(p => p.nombre === nombreFinal && p.precio === parseFloat(precioFinal));
+                        if (idx !== -1) {
+                            const nc = [...eq.cuenta];
+                            nc[idx] = { ...nc[idx], cantidad: (nc[idx].cantidad || 1) + (parseInt(cantidad) || 1) };
+                            return { ...eq, cuenta: nc };
+                        }
+                        return { ...eq, cuenta: [...eq.cuenta, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }] };
+                    }
                     return eq;
                 }));
                 setServicioForm({ ...servicioForm, cantidad: 1 });
             };
             const eliminarProductoDeCuenta = (uid) => { setEquipos(prev => prev.map(e => e.id === equipoSeleccionadoId ? { ...e, cuenta: e.cuenta.filter(i => i.uid !== uid) } : e)); };
+            
+            const disminuirCantidadDeCuenta = (uid) => {
+                 setEquipos(prev => prev.map(eq => {
+                    if (eq.id === equipoSeleccionadoId) {
+                        return { ...eq, cuenta: eq.cuenta.map(i => {
+                            if (i.uid === uid) return { ...i, cantidad: (i.cantidad || 1) - 1 };
+                            return i;
+                        }).filter(i => i.cantidad > 0) };
+                    }
+                    return eq;
+                 }));
+            };
 
             // --- ACCIONES ---
             const iniciarTiempoLibre = (id) => { 
@@ -825,14 +976,15 @@
                         subtotalRenta: 0, // Se pone en productos para descripción clara
                         pagoCon: totalCobrado, 
                         cambio: 0,
-                        atendio: usuarioActual.nombre 
+                        atendio: usuarioActual.nombre,
+                        cancelada: false
                     };
                     setVentas(prev => [...prev, venta]);
                     generarTicket(venta, config.formatoTicket || '58mm');
                     playSound('success');
                     setModalAbierto(null); 
                 } 
-                else alert("Inválido");
+                else addToast("Datos inválidos", 'error');
             };
             
             // --- CANCELAR SERVICIO (MODAL) ---
@@ -851,16 +1003,16 @@
 
             // --- USUARIOS ---
             const guardarUsuario = () => {
-                if(!usuarioForm.nombre || !usuarioForm.pin) return alert("Faltan datos");
+                if(!usuarioForm.nombre || !usuarioForm.pin) return addToast("Faltan datos", 'warning');
                 setUsuarios(prev => [...prev, { ...usuarioForm, id: Date.now() }]);
                 setUsuarioForm({ nombre: '', pin: '', rol: 'empleado' });
             };
             const eliminarUsuario = (id) => { if(id !== 1 && confirm("¿Eliminar?")) setUsuarios(prev => prev.filter(u => u.id !== id)); };
             const actualizarPin = () => {
-                if (pinData.nuevo.length !== 4 || pinData.nuevo !== pinData.confirmar) return alert("Error en PIN");
+                if (pinData.nuevo.length !== 4 || pinData.nuevo !== pinData.confirmar) return addToast("Error en PIN", 'error');
                 setUsuarios(prev => prev.map(u => u.id === usuarioActual.id ? { ...u, pin: pinData.nuevo } : u));
                 setUsuarioActual(prev => ({ ...prev, pin: pinData.nuevo }));
-                alert("Actualizado"); setModalAbierto(null); setPinData({ nuevo: '', confirmar: '' });
+                addToast("Actualizado", 'success'); setModalAbierto(null); setPinData({ nuevo: '', confirmar: '' });
             };
 
             // --- INTERCAMBIO ---
@@ -900,7 +1052,7 @@
                 if (cliente.id !== 1) { 
                     puntosGanados = Math.floor(total * RATIO_PUNTOS);
                     setClientes(prev => prev.map(c => c.id === cliente.id ? { ...c, puntos: (c.puntos || 0) + puntosGanados } : c));
-                    if(puntosGanados > 0) alert(`🎉 ¡${cliente.nombre} ganó ${puntosGanados} Puntos!`);
+                    if(puntosGanados > 0) addToast(`🎉 ¡${cliente.nombre} ganó ${puntosGanados} Puntos!`, 'success');
                 }
                 const nCat = [...catalogo];
                 eq.cuenta.forEach(i => { if (i.idCatalogo) { const idx = nCat.findIndex(p => p.id === i.idCatalogo); if (idx !== -1) nCat[idx].stock = Math.max(0, nCat[idx].stock - 1); } });
@@ -916,7 +1068,8 @@
                     subtotalRenta: subRenta,
                     pagoCon: pagoCon, 
                     cambio: cambio,
-                    atendio: usuarioActual.nombre 
+                    atendio: usuarioActual.nombre,
+                    cancelada: false
                 };
                 setVentas(prev => [...prev, venta]);
                 setEquipos(prev => prev.map(e => e.id === eq.id ? { ...e, estado: 'libre', inicio: null, tiempoAcumulado: 0, cuenta: [], modo: 'libre', limiteTiempo: 0, alertaMinuto: false } : e));
@@ -929,9 +1082,21 @@
 
             // --- REPORTES Y TICKETS (LÓGICA ACTUALIZADA FISCAL) ---
             const generarTicket = (venta, formato = '58mm') => {
-                if (!window.jspdf) return alert("Error PDF");
+                if (!window.jspdf) return addToast("Error PDF", 'error');
                 try {
                     const { jsPDF } = window.jspdf;
+                    
+                    // Agrupar productos visualmente para el ticket
+                    const productosAgrupados = [];
+                    (venta.productos || []).forEach(p => {
+                        const existing = productosAgrupados.find(i => i.nombre === p.nombre && i.precio === p.precio);
+                        if (existing) {
+                            existing.cantidad = (existing.cantidad || 1) + (p.cantidad || 1);
+                        } else {
+                            productosAgrupados.push({ ...p, cantidad: p.cantidad || 1 });
+                        }
+                    });
+
                     const negocio = config.negocio || CONFIG_INICIAL.negocio;
                     const tConfig = config.ticketConfig || CONFIG_INICIAL.ticketConfig;
                     const sepChar = tConfig.separador || '-';
@@ -994,7 +1159,7 @@
                         }
                         
                         // Agregar Productos
-                        venta.productos.forEach(p => {
+                        productosAgrupados.forEach(p => {
                             const cantidad = p.cantidad || 1;
                             const importe = cantidad * p.precio;
                             tableData.push([
@@ -1054,7 +1219,7 @@
                     } else {
                         // --- FORMATO 58MM (TÉRMICO) ---
                         // Calculamos largo dinámico
-                        const linesHeight = 120 + (venta.productos.length * 10);
+                        const linesHeight = 120 + (productosAgrupados.length * 10);
                         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [58, linesHeight] });
                         
                         let y = 5;
@@ -1112,7 +1277,7 @@
                         }
 
                         // Productos
-                        venta.productos.forEach(p => {
+                        productosAgrupados.forEach(p => {
                             const qty = p.cantidad || 1;
                             const importe = qty * p.precio;
                             const nombre = p.nombre.substring(0, 14); // Truncar nombre para que quepa
@@ -1152,7 +1317,7 @@
 
                         doc.save(`Ticket_${folioFiscal}.pdf`); 
                     }
-                } catch(e) { console.error(e); alert("Error generando PDF"); }
+                } catch(e) { console.error(e); addToast("Error generando PDF", 'error'); }
             };
 
             const generarReporteCaja = (cajaInfo, ventasList) => {
@@ -1161,7 +1326,7 @@
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
                     
-                    const totalVentas = ventasList.reduce((acc, v) => acc + v.total, 0);
+                    const totalVentas = ventasList.reduce((acc, v) => acc + (v.cancelada ? 0 : v.total), 0);
                     const totalCaja = cajaInfo.fondo + totalVentas;
 
                     // Encabezado
@@ -1210,7 +1375,7 @@
                         new Date(v.fecha).toLocaleTimeString(),
                         v.cliente.substring(0, 20),
                         v.equipo,
-                        `$${v.total.toFixed(2)}`
+                        v.cancelada ? 'CANCELADA' : `$${v.total.toFixed(2)}`
                     ]);
 
                     doc.autoTable({
@@ -1237,7 +1402,7 @@
             if (!usuarioActual) return <LoginScreen onLogin={setUsuarioActual} usuarios={usuarios} empresa={config.negocio?.nombre || "FasTPV"} />;
             const eqSel = getEquipoActual();
             const ventasTurno = obtenerVentasTurno();
-            const totalVentasTurno = ventasTurno.reduce((acc, v) => acc + v.total, 0);
+            const totalVentasTurno = ventasTurno.reduce((acc, v) => acc + (v.cancelada ? 0 : v.total), 0);
 
             return (
                 <div className="min-h-screen bg-[#f2f2f7] text-slate-800 font-sans pb-10 selection:bg-blue-500 selection:text-white transition-colors duration-300">
@@ -1259,6 +1424,7 @@
                                 <button onClick={abrirVentaDirecta} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg shadow-orange-500/30 transition-all fade-anim">
                                     <Store size={18} /> <span className="hidden sm:inline">Venta</span>
                                 </button>
+                                <button onClick={() => setModalAbierto('historial')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all" title="Historial"><History size={18}/></button>
                                 
                                 {usuarioActual.rol === 'admin' && (
                                     <>
@@ -1404,6 +1570,67 @@
                         </div>
                     )}
 
+                    {/* --- MODAL HISTORIAL (VENTAS Y CORTES) --- */}
+                    {modalAbierto === 'historial' && (
+                        <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col modal-anim border border-white/20 dark:border-slate-700 overflow-hidden">
+                                <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+                                    <h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><History className="text-blue-500"/> Historial de Operaciones</h2>
+                                    <button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"><X size={20} className="text-slate-500"/></button>
+                                </div>
+                                <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+                                    {/* COLUMNA 1: VENTAS RECIENTES */}
+                                    <div className="flex-1 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-800"><h3 className="font-bold text-indigo-800 dark:text-indigo-300 text-sm flex items-center gap-2"><Ticket size={16}/> Ventas Recientes</h3></div>
+                                        <div className="flex-1 overflow-y-auto p-0">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold sticky top-0"><tr><th className="p-3">Folio</th><th className="p-3">Hora</th><th className="p-3">Cliente</th><th className="p-3 text-right">Total</th><th className="p-3 text-center">Acción</th></tr></thead>
+                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                    {[...ventas].sort((a,b) => b.id - a.id).slice(0, 50).map(v => (
+                                                        <tr key={v.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${v.cancelada ? 'opacity-50 bg-slate-50 dark:bg-slate-800/50' : ''}`}>
+                                                            <td className="p-3 font-mono text-xs text-slate-500">{v.id.toString().slice(-4)}</td>
+                                                            <td className="p-3 text-slate-600 dark:text-slate-300 text-xs">{new Date(v.fecha).toLocaleDateString()} {new Date(v.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                                                            <td className="p-3 font-medium text-slate-800 dark:text-white truncate max-w-[100px]">{v.cliente}</td>
+                                                            <td className={`p-3 text-right font-bold ${v.cancelada ? 'text-slate-400 line-through' : 'text-emerald-600 dark:text-emerald-400'}`}>${v.total.toFixed(2)}</td>
+                                                            <td className="p-3 text-center">
+                                                                {v.cancelada ? <span className="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-bold">CANCELADA</span> : (
+                                                                    <div className="flex justify-center gap-2">
+                                                                        <button onClick={() => generarTicket(v, config.formatoTicket)} className="text-slate-400 hover:text-blue-500" title="Reimprimir"><Printer size={16}/></button>
+                                                                        {usuarioActual.rol === 'admin' && new Date(v.fecha).toDateString() === new Date().toDateString() && (
+                                                                            <button onClick={() => cancelarVenta(v.id)} className="text-slate-400 hover:text-rose-500" title="Cancelar Venta"><Ban size={16}/></button>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {/* COLUMNA 2: HISTORIAL CORTES */}
+                                    <div className="w-full md:w-1/3 flex flex-col bg-slate-50 dark:bg-slate-800/50">
+                                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800"><h3 className="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2"><FileClock size={16}/> Cortes de Caja Anteriores</h3></div>
+                                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                                            {cortes.length === 0 ? <div className="text-center text-slate-400 py-10 text-sm">No hay cortes registrados</div> : cortes.map(c => (
+                                                <div key={c.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div><div className="font-bold text-slate-700 dark:text-white text-sm">{new Date(c.fecha).toLocaleDateString()}</div><div className="text-xs text-slate-400">{new Date(c.fecha).toLocaleTimeString()}</div></div>
+                                                        <button onClick={() => reimprimirCorte(c)} className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-1.5 rounded transition-colors" title="Reimprimir Reporte"><Printer size={16}/></button>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"><span>Fondo Inicial:</span><span>${c.fondo.toFixed(2)}</span></div>
+                                                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"><span>Ventas:</span><span className="text-emerald-600 font-bold">+${c.totalVentas.toFixed(2)}</span></div>
+                                                    <div className="border-t dark:border-slate-700 mt-2 pt-2 flex justify-between font-bold text-sm text-slate-800 dark:text-white"><span>Total Caja:</span><span>${c.totalCaja.toFixed(2)}</span></div>
+                                                    <div className="mt-2 text-[10px] text-slate-400 text-right">Por: {c.usuario}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* --- MODAL CONFIGURACION (GENERAL Y PRECIOS) --- */}
                     {modalAbierto === 'config' && (
                         <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
@@ -1500,6 +1727,9 @@
                                                 <div><span className="text-[10px] text-slate-400 block">Asesoría</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.asesoria} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, asesoria: parseFloat(e.target.value)}}})} /></div>
                                                 <div><span className="text-[10px] text-slate-400 block">Oficio(+)</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.extras.oficio} onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, oficio: parseFloat(e.target.value)}}})} /></div>
                                                 <div><span className="text-[10px] text-slate-400 block">Tabloide(x)</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.extras.tabloide} onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, tabloide: parseFloat(e.target.value)}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Escaneo Carta</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.escaneo?.carta} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, escaneo: {...config.precios.otros.escaneo, carta: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Escaneo Oficio</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.escaneo?.oficio} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, escaneo: {...config.precios.otros.escaneo, oficio: parseFloat(e.target.value)}}}})} /></div>
+                                                <div><span className="text-[10px] text-slate-400 block">Envío Digital</span><input type="number" className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded p-1 text-center font-bold dark:text-white" value={config.precios.otros.envio} onChange={e => setConfig({...config, precios: {...config.precios, otros: {...config.precios.otros, envio: parseFloat(e.target.value)}}})} /></div>
                                             </div>
                                         </div>
                                     </div>
@@ -1637,10 +1867,13 @@
                                     <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
                                         {/* Left Column: Inventario */}
                                         <div className="w-full sm:w-1/2 flex flex-col border-r border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
-                                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-col gap-2">
+                                                <div className="flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
+                                                <input className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-1.5 rounded text-sm outline-none focus:border-orange-500 dark:text-white" placeholder="Buscar producto..." value={busquedaDirecta} onChange={e => setBusquedaDirecta(e.target.value)} />
+                                            </div>
                                             <div className="flex-1 overflow-y-auto p-3">
                                                 <div className="grid grid-cols-1 gap-2">
-                                                    {catalogo.map(prod => (
+                                                    {catalogo.filter(p => p.nombre.toLowerCase().includes(busquedaDirecta.toLowerCase()) || (p.codigo && p.codigo.includes(busquedaDirecta))).map(prod => (
                                                         <button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoDirecto(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all group">
                                                             <span className="text-2xl">{prod.icon}</span>
                                                             <div className="min-w-0 flex-1">
@@ -1728,7 +1961,7 @@
                                             {mostrarNuevoCliente && (<div className="mt-2 bg-indigo-50 p-2 rounded flex gap-2 fade-anim"><input className="flex-1 text-xs border rounded p-1" placeholder="Nombre Cliente" value={nuevoClienteNombre} onChange={e => setNuevoClienteNombre(e.target.value)} autoFocus /><button onClick={agregarClienteRapido} className="bg-indigo-600 text-white text-xs font-bold px-2 rounded hover:bg-indigo-700">OK</button></div>)}
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">
-                                            {carritoDirecto.length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span></div>) : (carritoDirecto.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group"><div><div className="font-bold text-sm text-slate-800 dark:text-white">{i.nombre}</div><div className="text-xs text-slate-400">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><button onClick={() => eliminarItemDirecto(i.uid)} className="text-slate-300 hover:text-rose-500"><X size={16}/></button></div></div>)))}
+                                            {carritoDirecto.length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span></div>) : (carritoDirecto.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group"><div><div className="font-bold text-sm text-slate-800 dark:text-white">{i.nombre}</div><div className="text-xs text-slate-400">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="flex items-center"><button onClick={() => disminuirCantidadDirecto(i.uid)} className="p-1 text-slate-300 hover:text-amber-500 transition-colors" title="Disminuir"><Minus size={16}/></button><button onClick={() => eliminarItemDirecto(i.uid)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors" title="Eliminar"><X size={16}/></button></div></div></div>)))}
                                         </div>
                                         <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                                             <div className="flex justify-between items-center mb-2">
@@ -1875,7 +2108,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20"><div className="p-4 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center"><div><h3 className="font-bold text-slate-700 dark:text-white text-sm uppercase tracking-wide">Cuenta Actual</h3><p className="text-[10px] text-slate-400">Resumen de consumos</p></div><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span></div><div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">{eqSel.cuenta.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 group relative hover:border-indigo-300 transition-all"><div className="flex justify-between items-start pr-6"><div><div className="font-bold text-sm text-slate-800 dark:text-white leading-tight">{i.nombre}</div>{i.esManual && <span className="text-[10px] bg-slate-100 dark:bg-slate-600 px-1 rounded text-slate-500 dark:text-slate-300">Manual</span>}</div><div className="text-right"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="text-[10px] text-slate-400">{i.cantidad} x ${i.precio}</div></div></div><button onClick={() => eliminarProductoDeCuenta(i.uid)} className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full transition-colors" title="Eliminar"><X size={14}/></button></div>))}{eqSel.cuenta.length === 0 && (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span><span className="text-[10px]">Agregue productos o servicios</span></div>)}</div><div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"><div className="space-y-1 mb-4"><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Subtotal Productos</span><span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Renta Estimada (Tiempo)</span><span>${calcularTotalRenta(eqSel).toFixed(2)}</span></div></div><div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 dark:border-slate-600 mb-4"><span className="font-bold text-lg text-slate-700 dark:text-white">Total a Pagar</span><span className="font-black text-2xl text-indigo-600 dark:text-indigo-400 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span></div><button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"><Ticket size={18}/> Cobrar Cuenta</button></div></div>
+                                    <div className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20"><div className="p-4 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center"><div><h3 className="font-bold text-slate-700 dark:text-white text-sm uppercase tracking-wide">Cuenta Actual</h3><p className="text-[10px] text-slate-400">Resumen de consumos</p></div><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span></div><div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">{eqSel.cuenta.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 group relative hover:border-indigo-300 transition-all"><div className="flex justify-between items-center"><div><div className="font-bold text-sm text-slate-800 dark:text-white leading-tight">{i.nombre}</div>{i.esManual && <span className="text-[10px] bg-slate-100 dark:bg-slate-600 px-1 rounded text-slate-500 dark:text-slate-300">Manual</span>}<div className="text-[10px] text-slate-400 mt-0.5">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="flex items-center"><button onClick={() => disminuirCantidadDeCuenta(i.uid)} className="p-1 text-slate-300 hover:text-amber-500 transition-colors" title="Disminuir"><Minus size={16}/></button><button onClick={() => eliminarProductoDeCuenta(i.uid)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors" title="Eliminar"><X size={16}/></button></div></div></div></div>))}{eqSel.cuenta.length === 0 && (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span><span className="text-[10px]">Agregue productos o servicios</span></div>)}</div><div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"><div className="space-y-1 mb-4"><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Subtotal Productos</span><span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Renta Estimada (Tiempo)</span><span>${calcularTotalRenta(eqSel).toFixed(2)}</span></div></div><div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 dark:border-slate-600 mb-4"><span className="font-bold text-lg text-slate-700 dark:text-white">Total a Pagar</span><span className="font-black text-2xl text-indigo-600 dark:text-indigo-400 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span></div><button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"><Ticket size={18}/> Cobrar Cuenta</button></div></div>
                                 </div>
                              </div>
                         </div>
@@ -2025,6 +2258,22 @@
                         </div>
                     )}
 
+                    {/* --- TOASTS --- */}
+                    <div className="fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none">
+                        {toasts.map(t => (
+                            <div key={t.id} className={`pointer-events-auto w-80 bg-white dark:bg-slate-800 shadow-2xl rounded-xl p-4 flex items-start gap-3 border-l-4 transition-all ${t.type === 'success' ? 'border-emerald-500' : t.type === 'error' ? 'border-rose-500' : t.type === 'warning' ? 'border-amber-500' : 'border-blue-500'}`}>
+                                <div className={`mt-0.5 ${t.type === 'success' ? 'text-emerald-500' : t.type === 'error' ? 'text-rose-500' : t.type === 'warning' ? 'text-amber-500' : 'text-blue-500'}`}>
+                                    {t.type === 'success' ? <CheckCircle size={20}/> : t.type === 'error' ? <AlertCircle size={20}/> : t.type === 'warning' ? <AlertTriangle size={20}/> : <Info size={20}/>}
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-0.5 capitalize">{t.type === 'info' ? 'Información' : t.type}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line">{t.msg}</p>
+                                </div>
+                                <button onClick={() => removeToast(t.id)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={16}/></button>
+                            </div>
+                        ))}
+                    </div>
+
                 </div>
             );
         }
@@ -2042,5 +2291,4 @@
         }
     </script>
 </body>
-</html>
 </html>
