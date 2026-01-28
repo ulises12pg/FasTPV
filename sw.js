@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cronosys-v2.1-cache';
+const CACHE_NAME = 'fastpv-v1.0-cache';
 
 const ASSETS_TO_CACHE = [
 

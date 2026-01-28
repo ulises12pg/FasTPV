@@ -23,6 +23,7 @@
 
     <!-- Usamos la versión minificada para producción. Recuerda minificar styles.css al editar -->
     <link rel="stylesheet" href="styles.min.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <!-- FONDO GRIS PLATEADO OSCURO -->
 <body class="bg-[#f2f2f7] text-slate-800 selection:bg-blue-500 selection:text-white transition-colors duration-300">
@@ -2029,6 +2030,15 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<CiberManager />);
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('SW registrado con éxito:', registration.scope))
+                    .catch(err => console.log('SW fallo al registrar:', err));
+            });
+        }
     </script>
 </body>
 </html>
