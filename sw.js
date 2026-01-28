@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fastpv-v1.0-cache';
+const CACHE_NAME = 'fastpv-v1.1-cache';
 
 const ASSETS_TO_CACHE = [
 
@@ -26,9 +26,8 @@ const ASSETS_TO_CACHE = [
 
   'https://unpkg.com/@babel/standalone/babel.min.js',
 
-  // Icono genérico usado en el manifest
-
-  'https://cdn-icons-png.flaticon.com/512/2830/2830305.png'
+  './icon-192.png',
+  './icon-512.png'
 
 ];
 
