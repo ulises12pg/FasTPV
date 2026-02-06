@@ -101,6 +101,12 @@ export const generarTicket = (venta, config) => {
         if (config.formatoTicket === 'LETTER') {
             const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
             
+            // Logo en formato Carta
+            if (negocio.logo) {
+                try { doc.addImage(negocio.logo, 'PNG', 15, 15, 25, 25); } 
+                catch (e) { console.warn("Error al cargar logo en PDF", e); }
+            }
+
             doc.setFontSize(14); doc.setFont("helvetica", "bold");
             doc.text(negocio.nombre, 105, 20, { align: 'center' });
             doc.setFontSize(10); doc.setFont("helvetica", "normal");
@@ -171,6 +177,15 @@ export const generarTicket = (venta, config) => {
             
             const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [58, linesHeight] });
             let y = 5;
+            
+            // Logo en formato Ticket 58mm
+            if (negocio.logo) {
+                try {
+                    doc.addImage(negocio.logo, 'PNG', 19, y, 20, 20); // Centrado (58-20)/2 = 19
+                    y += 22;
+                } catch (e) { console.warn("Error al cargar logo en Ticket", e); }
+            }
+
             const centerX = 29;
             const margin = 2;
             const rightX = 56;
@@ -268,38 +283,189 @@ export const generarTicket = (venta, config) => {
     } catch(e) { console.error(e); }
 };
 
-export const generarReporteCaja = (cajaInfo, ventasList) => {
+export const generarReporteCaja = (cajaInfo, ventasList, usuario = {}, config = {}) => {
     try {
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
-        const totalVentas = ventasList.reduce((acc, v) => acc + (v.cancelada ? 0 : v.total), 0);
+        const negocio = config.negocio || { nombre: "FasTPV" };
         
-        doc.setFontSize(18); doc.text("CORTE DE CAJA", 105, 20, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text(`Fecha: ${new Date().toLocaleString()}`, 15, 35);
+        // Paleta de Colores Empresarial (Slate & Blue)
+        const colorPrimary = [30, 41, 59]; // Slate 800
+        const colorSecondary = [59, 130, 246]; // Blue 500
+        const colorGray = [100, 116, 139]; // Slate 500
+        const colorLight = [241, 245, 249]; // Slate 100
+
+        // --- ENCABEZADO ---
+        doc.setFillColor(...colorPrimary);
+        doc.rect(0, 0, 216, 40, 'F');
         
-        doc.text("Fondo Inicial:", 20, 50);
-        doc.text(`$${cajaInfo.fondo.toFixed(2)}`, 190, 50, { align: 'right' });
-        
-        doc.text("Ventas:", 20, 60);
-        doc.text(`$${totalVentas.toFixed(2)}`, 190, 60, { align: 'right' });
-        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
         doc.setFont("helvetica", "bold");
-        doc.text("TOTAL CAJA:", 20, 75);
-        doc.text(`$${(cajaInfo.fondo + totalVentas).toFixed(2)}`, 190, 75, { align: 'right' });
+        doc.text(negocio.nombre, 15, 20);
         
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        if(negocio.rfc) doc.text(`RFC: ${negocio.rfc}`, 15, 26);
+        if(negocio.direccion) doc.text(negocio.direccion, 15, 31);
+
+        doc.setFontSize(24);
+        doc.text("CORTE DE CAJA", 200, 25, { align: 'right' });
+        doc.setFontSize(10);
+        doc.text(`Generado: ${new Date().toLocaleString()}`, 200, 32, { align: 'right' });
+
+        // --- INFORMACIÓN DEL TURNO ---
+        let y = 55;
+        
+        doc.setTextColor(...colorPrimary);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("INFORMACIÓN DEL TURNO", 15, y);
+        doc.setDrawColor(200);
+        doc.line(15, y+2, 200, y+2);
+        
+        y += 10;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        
+        const fechaInicio = cajaInfo.inicio ? new Date(cajaInfo.inicio).toLocaleString() : 'N/A';
+        const fechaCierre = cajaInfo.fechaCierre ? new Date(cajaInfo.fechaCierre).toLocaleString() : 'En curso';
+        
+        doc.text("Inicio de Turno:", 15, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(fechaInicio, 45, y);
+        
+        doc.setFont("helvetica", "normal");
+        doc.text("Cierre de Turno:", 110, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(fechaCierre, 140, y);
+        
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        doc.text("Atendido por:", 15, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${usuario.nombre || 'Desconocido'}`, 45, y);
+        
+        doc.setFont("helvetica", "normal");
+        doc.text("Rol / Cargo:", 110, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${(usuario.rol || 'Empleado').toUpperCase()}`, 140, y);
+
+        // --- RESUMEN FINANCIERO ---
+        y += 15;
+        doc.setFontSize(12);
+        doc.setTextColor(...colorPrimary);
+        doc.text("BALANCE FINANCIERO", 15, y);
+        doc.line(15, y+2, 200, y+2);
+        y += 10;
+
+        // Cálculos
+        const ventasValidas = ventasList.filter(v => !v.cancelada);
+        
+        // Helper para identificar montos de Prepago (que se guardan como productos pero cuentan como Renta)
+        const getMontoPrepago = (v) => {
+            if (!v.productos) return 0;
+            return v.productos.reduce((sum, p) => {
+                if (p.nombre && p.nombre.startsWith('Renta Prepago')) {
+                    return sum + (p.precio * (p.cantidad || 1));
+                }
+                return sum;
+            }, 0);
+        };
+
+        const totalVentas = ventasValidas.reduce((acc, v) => acc + v.total, 0);
+        const totalRenta = ventasValidas.reduce((acc, v) => acc + (v.subtotalRenta || 0) + getMontoPrepago(v), 0);
+        const totalProductos = totalVentas - totalRenta;
+        const ventasCanceladas = ventasList.filter(v => v.cancelada);
+        const totalCancelado = ventasCanceladas.reduce((acc, v) => acc + v.total, 0);
+        const totalCaja = (cajaInfo.fondo || 0) + totalVentas;
+
+        // Contadores ajustados (Prepago cuenta como Renta)
+        const countRenta = ventasValidas.filter(v => (v.subtotalRenta > 0) || getMontoPrepago(v) > 0).length;
+        const countProductos = ventasValidas.filter(v => (v.total - ((v.subtotalRenta || 0) + getMontoPrepago(v))) > 0.01).length;
+
+        // Cards visuales (Fondo, Ventas, Total)
+        const drawCard = (x, title, amount, color) => {
+            doc.setFillColor(252, 252, 252);
+            doc.setDrawColor(220, 220, 220);
+            doc.roundedRect(x, y, 55, 25, 2, 2, 'FD');
+            
+            doc.setFontSize(8);
+            doc.setTextColor(...colorGray);
+            doc.setFont("helvetica", "bold");
+            doc.text(title.toUpperCase(), x + 27.5, y + 8, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.setTextColor(...color);
+            doc.text(`$${amount.toFixed(2)}`, x + 27.5, y + 18, { align: 'center' });
+        };
+
+        drawCard(15, "Fondo Inicial", cajaInfo.fondo || 0, colorPrimary);
+        drawCard(80, "Ventas Totales", totalVentas, colorSecondary);
+        drawCard(145, "Total en Caja", totalCaja, [16, 185, 129]); // Emerald
+
+        y += 35;
+
+        // --- TABLA DESGLOSE ---
+        doc.autoTable({
+            startY: y,
+            head: [['Concepto', 'Cant. Transacciones', 'Monto Total']],
+            body: [
+                ['Renta de Equipos / Tiempo', countRenta, `$${totalRenta.toFixed(2)}`],
+                ['Productos y Servicios', countProductos, `$${totalProductos.toFixed(2)}`],
+                ['Ventas Canceladas', ventasCanceladas.length, `$${totalCancelado.toFixed(2)}`]
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: colorPrimary, textColor: 255, fontStyle: 'bold' },
+            styles: { fontSize: 10, cellPadding: 3 },
+            columnStyles: { 2: { halign: 'right', fontStyle: 'bold' }, 1: { halign: 'center' } }
+        });
+
+        y = doc.lastAutoTable.finalY + 15;
+
+        // --- DETALLE DE MOVIMIENTOS ---
+        doc.setFontSize(12);
+        doc.setTextColor(...colorPrimary);
+        doc.text("DETALLE DE MOVIMIENTOS", 15, y);
+        doc.line(15, y+2, 200, y+2);
+
         const rows = ventasList.map(v => [
             v.id.toString().slice(-4),
-            new Date(v.fecha).toLocaleTimeString(),
+            new Date(v.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            v.cliente.substring(0, 25),
             v.equipo,
-            v.cancelada ? 'CANCELADA' : `$${v.total.toFixed(2)}`
+            v.cancelada ? 'CANCELADA' : 'Venta',
+            v.cancelada ? `$0.00` : `$${v.total.toFixed(2)}`
         ]);
         
         doc.autoTable({
-            startY: 85,
-            head: [['Folio', 'Hora', 'Origen', 'Monto']],
+            startY: y + 5,
+            head: [['Folio', 'Hora', 'Cliente', 'Origen', 'Estado', 'Monto']],
             body: rows,
+            theme: 'striped',
+            headStyles: { fillColor: colorGray, textColor: 255, fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 2 },
+            columnStyles: { 
+                0: { fontStyle: 'bold' },
+                5: { halign: 'right', fontStyle: 'bold' }
+            },
+            didParseCell: function(data) {
+                if (data.section === 'body' && data.row.raw[4] === 'CANCELADA') {
+                    data.cell.styles.textColor = [239, 68, 68]; // Red
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
         });
         
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Página ${i} de ${pageCount}`, 105, 270, { align: 'center' });
+            doc.text("Sistema FasTPV - Reporte Generado Automáticamente", 105, 275, { align: 'center' });
+        }
+
         doc.save(`Corte_${new Date().toISOString().slice(0,10)}.pdf`);
     } catch(e) { console.error(e); }
 };

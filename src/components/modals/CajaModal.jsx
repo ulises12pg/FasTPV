@@ -10,7 +10,8 @@ export default function CajaModal() {
         setCortes, 
         usuarioActual, 
         setModalAbierto, 
-        addToast 
+        addToast,
+        config
     } = useSystem();
 
     const [cajaForm, setCajaForm] = useState({ fondo: '' });
@@ -44,7 +45,7 @@ export default function CajaModal() {
             };
             
             setCortes(prev => [nuevoCorte, ...prev]);
-            generarReporteCaja(caja, ventasTurno); // Generar PDF Carta
+            generarReporteCaja({ ...caja, fechaCierre: new Date().toISOString() }, ventasTurno, usuarioActual, config);
             
             setCaja({ activa: false, fondo: 0, inicio: null });
             addToast("Turno cerrado. Reporte generado.", 'success');

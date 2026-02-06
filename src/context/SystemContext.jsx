@@ -25,6 +25,7 @@ export const SystemProvider = ({ children }) => {
     const [modalAbierto, setModalAbierto] = useState(null);
     const [equipoSeleccionadoId, setEquipoSeleccionadoId] = useState(null);
     const [toasts, setToasts] = useState([]);
+    const [modoEdicion, setModoEdicion] = useState(false);
     
     // --- DARK MODE ---
     const [darkMode, setDarkMode] = useState(() => {
@@ -106,6 +107,14 @@ export const SystemProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, []);
 
+    // --- REORDENAMIENTO DE EQUIPOS ---
+    const reordenarEquipos = (origenIndex, destinoIndex) => {
+        const nuevosEquipos = [...equipos];
+        const [itemMovido] = nuevosEquipos.splice(origenIndex, 1);
+        nuevosEquipos.splice(destinoIndex, 0, itemMovido);
+        setEquipos(nuevosEquipos);
+    };
+
     // Aquí irían el resto de funciones (abrirCaja, cobrar, etc.) expuestas en el value
     // Para brevedad, expongo lo básico, pero deberías mover todas las funciones helper aquí.
 
@@ -123,6 +132,8 @@ export const SystemProvider = ({ children }) => {
         equipoSeleccionadoId, setEquipoSeleccionadoId,
         toasts, addToast, removeToast,
         darkMode, toggleDarkMode,
+        modoEdicion, setModoEdicion,
+        reordenarEquipos,
         // Helpers
         playSound
     };

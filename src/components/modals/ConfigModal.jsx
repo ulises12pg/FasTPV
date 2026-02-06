@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSystem } from '../../context/SystemContext';
 import { 
-    Settings, X, Building, FileText, DollarSign, ArrowRightLeft, Trash2, Plus,
+    Settings, X, Building, FileText, DollarSign, ArrowRightLeft, Trash2, Plus, Database, Upload,
     Star, Zap, Coffee, Printer, Wifi, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella
 } from 'lucide-react';
 
@@ -42,6 +42,21 @@ export default function ConfigModal() {
         setConfig(prev => ({ ...prev, precios: { ...prev.precios, otros: newOtros } }));
     };
 
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 300 * 1024) { // Límite 300KB para no saturar localStorage
+                addToast("El logo debe pesar menos de 300KB", 'warning');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setConfig(prev => ({ ...prev, negocio: { ...prev.negocio, logo: event.target.result } }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col modal-anim border border-white/20 dark:border-slate-700">
@@ -73,8 +88,42 @@ export default function ConfigModal() {
                                 <h3 className="font-bold text-amber-800 dark:text-amber-400 text-xs uppercase flex items-center gap-2"><Building size={14}/> Datos del Negocio</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div><label className="text-[10px] font-bold text-slate-500 uppercase">Nombre</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.nombre} onChange={e => setConfig({...config, negocio: {...config.negocio, nombre: e.target.value}})} /></div>
-                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">RFC</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.rfc} onChange={e => setConfig({...config, negocio: {...config.negocio, rfc: e.target.value}})} /></div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase">RFC</label>
+                                        <input 
+                                            className={`w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:text-white transition-colors outline-none ${
+                                                (!config.negocio.rfc || /^[A-Z0-9Ñ&]{12,13}$/i.test(config.negocio.rfc)) 
+                                                ? 'border-slate-200 dark:border-slate-600 focus:border-blue-500' 
+                                                : 'border-rose-500 focus:border-rose-500 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300'
+                                            }`} 
+                                            value={config.negocio.rfc} 
+                                            onChange={e => setConfig({...config, negocio: {...config.negocio, rfc: e.target.value.toUpperCase()}})} 
+                                            placeholder="XAXX010101000"
+                                            maxLength={13}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Régimen Fiscal</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.regimen || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, regimen: e.target.value}})} placeholder="Ej. 626 - Régimen Simplificado de Confianza" /></div>
                                     <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Dirección</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.direccion} onChange={e => setConfig({...config, negocio: {...config.negocio, direccion: e.target.value}})} /></div>
+                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Lugar de Expedición</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.lugarExpedicion || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, lugarExpedicion: e.target.value}})} placeholder="Ej. Pachuca, Hidalgo" /></div>
+                                    
+                                    {/* Carga de Logo */}
+                                    <div className="md:col-span-2 mt-1 border-t dark:border-slate-700 pt-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Logotipo del Ticket</label>
+                                        <div className="flex items-center gap-4">
+                                            {config.negocio.logo ? (
+                                                <div className="relative group shrink-0">
+                                                    <img src={config.negocio.logo} alt="Logo" className="w-16 h-16 object-contain border rounded bg-white" />
+                                                    <button onClick={() => setConfig({...config, negocio: {...config.negocio, logo: null}})} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 shadow-sm hover:bg-rose-600 transition-colors"><X size={12} /></button>
+                                                </div>
+                                            ) : (
+                                                <div className="w-16 h-16 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded flex items-center justify-center text-slate-400 shrink-0"><Upload size={20} /></div>
+                                            )}
+                                            <div className="flex-1">
+                                                <input type="file" accept="image/*" onChange={handleLogoUpload} className="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-300 transition-all cursor-pointer" />
+                                                <p className="text-[10px] text-slate-400 mt-1">Recomendado: PNG o JPG cuadrado, fondo transparente. Máx 300KB.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between border-t dark:border-slate-700 pt-4">
@@ -85,8 +134,17 @@ export default function ConfigModal() {
                                 <button onClick={() => setModalAbierto('config_ticket')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-colors dark:text-white"><FileText size={24}/> Ticket</button>
                                 <button onClick={() => setModalAbierto('config_precios')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-colors dark:text-white"><DollarSign size={24}/> Precios</button>
                             </div>
+                            
+                            {/* Botón de Respaldo Integrado */}
+                            <button 
+                                onClick={() => setModalAbierto('backup')} 
+                                className="w-full bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors text-amber-800 dark:text-amber-400"
+                            >
+                                <Database size={20}/> Respaldo y Restauración
+                            </button>
                         </div>
                     )}
+                    
 
                     {modalAbierto === 'config_precios' && (
                         <div className="space-y-6">

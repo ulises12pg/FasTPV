@@ -13,7 +13,8 @@ export default function HistorialModal() {
         clientes, setClientes, 
         usuarioActual, 
         config, 
-        addToast 
+        addToast,
+        usuarios
     } = useSystem();
 
     if (modalAbierto !== 'historial') return null;
@@ -59,8 +60,10 @@ export default function HistorialModal() {
 
     const reimprimirCorte = (corte) => {
         // Reconstruir objeto caja simulado para el reporte
-        const cajaSimulada = { fondo: corte.fondo, inicio: corte.inicio };
-        generarReporteCaja(cajaSimulada, corte.ventasSnapshot || []);
+        const cajaSimulada = { fondo: corte.fondo, inicio: corte.inicio, fechaCierre: corte.fecha };
+        // Buscar info del usuario (rol)
+        const usuarioCorte = usuarios.find(u => u.nombre === corte.usuario) || { nombre: corte.usuario, rol: 'N/A' };
+        generarReporteCaja(cajaSimulada, corte.ventasSnapshot || [], usuarioCorte, config);
     };
 
     const exportarCSV = () => {

@@ -21,12 +21,14 @@ import ProductosModal from './components/modals/ProductosModal';
 import ConfirmarResetModal from './components/modals/ConfirmarResetModal';
 import LegalModal from './components/modals/LegalModal';
 import VentaDirectaModal from './components/modals/VentaDirectaModal';
+import LogoutModal from './components/modals/LogoutModal';
 
 // Iconos para Toasts
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info, Move, LogOut } from 'lucide-react';
 
 function AppContent() {
-    const { usuarioActual, equipos, modalAbierto, toasts, removeToast } = useSystem();
+    const { usuarioActual, setUsuarioActual, equipos, modalAbierto, setModalAbierto, toasts, removeToast, modoEdicion, reordenarEquipos } = useSystem();
+    const [draggedIndex, setDraggedIndex] = React.useState(null);
 
     // Log de verificación de carga
     console.log("FasTPV App iniciada correctamente");
@@ -34,14 +36,48 @@ function AppContent() {
     // Si no hay usuario logueado, mostrar pantalla de Login
     if (!usuarioActual) return <LoginScreen />;
 
+    // Handlers para Drag & Drop
+    const handleDragStart = (e, index) => {
+        setDraggedIndex(index);
+        // Efecto visual opcional
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragEnter = (index) => {
+        if (draggedIndex === null || draggedIndex === index) return;
+        reordenarEquipos(draggedIndex, index);
+        setDraggedIndex(index);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+    };
+
     return (
         <div className="min-h-screen bg-[#f2f2f7] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans pb-10 transition-colors duration-300">
             <Navbar />
             
             <main className="max-w-7xl mx-auto px-4 py-6">
+                {modoEdicion && (
+                    <div className="mb-4 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+                        <Move size={16} /> Modo Diseño Activo: Arrastra las estaciones para reordenarlas a tu gusto.
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {equipos.map(eq => (
-                        <EquipmentCard key={eq.id} equipo={eq} />
+                    {equipos.map((eq, index) => (
+                        <div 
+                            key={eq.id}
+                            draggable={modoEdicion}
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragEnter={() => handleDragEnter(index)}
+                            onDragEnd={handleDragEnd}
+                            onDragOver={(e) => e.preventDefault()}
+                            className={`transition-all duration-200 rounded-2xl ${modoEdicion ? 'cursor-move ring-2 ring-dashed ring-amber-400 bg-amber-50/50 dark:bg-amber-900/10 scale-[0.98]' : ''} ${draggedIndex === index ? 'opacity-40' : ''}`}
+                        >
+                            <div className={modoEdicion ? 'pointer-events-none' : ''}>
+                                <EquipmentCard equipo={eq} />
+                            </div>
+                        </div>
                     ))}
                 </div>
             </main>
@@ -49,6 +85,24 @@ function AppContent() {
             <footer className="text-center py-8 text-slate-400 text-xs">
                 <p>&copy; {new Date().getFullYear()} FasTPV. Todos los derechos reservados.</p>
             </footer>
+
+            {/* Botón Flotante Info/Legal */}
+            <button 
+                onClick={() => setModalAbierto('legal')} 
+                className="fixed bottom-4 left-4 z-40 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur text-slate-400 hover:text-cyan-500 shadow-lg border border-slate-200/50 dark:border-slate-700/50 transition-all hover:scale-110 hover:shadow-cyan-500/20"
+                title="Información y Legal"
+            >
+                <Info size={20} />
+            </button>
+
+            {/* Botón Flotante Logout */}
+            <button 
+                onClick={() => setModalAbierto('logout_confirm')} 
+                className="fixed bottom-4 right-4 z-40 p-3 rounded-full bg-rose-500/80 dark:bg-rose-600/80 backdrop-blur text-white shadow-lg border border-rose-400/50 transition-all hover:scale-110 hover:shadow-rose-500/30"
+                title="Cerrar Sesión"
+            >
+                <LogOut size={20} />
+            </button>
 
             {/* --- RENDERIZADO DE MODALES --- */}
             {/* Usamos renderizado condicional para montar/desmontar componentes y evitar errores de hooks */}
@@ -68,6 +122,7 @@ function AppContent() {
             {modalAbierto === 'reset' && <ConfirmarResetModal />}
             {modalAbierto === 'legal' && <LegalModal />}
             {modalAbierto === 'venta_directa' && <VentaDirectaModal />}
+            {modalAbierto === 'logout_confirm' && <LogoutModal />}
             
             {/* --- SISTEMA DE NOTIFICACIONES (TOASTS) --- */}
             <div className="fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none">
