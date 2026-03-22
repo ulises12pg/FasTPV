@@ -93,8 +93,22 @@ export default function FiscalGuideModal() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 border-b dark:border-slate-700 pb-2">Datos del Receptor</h3>
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 border-b dark:border-slate-700 pb-2">Información Fiscal (SAT)</h3>
                                     
+                                    {/* EMISOR (TÚ) */}
+                                    <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-200 dark:border-purple-800/40 space-y-2 mb-4">
+                                        <h4 className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest">Tus Datos (Emisor)</h4>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-slate-500 font-bold">RFC</span>
+                                            <span className="dark:text-white font-mono">{config.negocio.rfc || 'FALTA RFC'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-slate-500 font-bold">Régimen</span>
+                                            <span className="dark:text-white truncate max-w-[150px]" title={config.negocio.regimen}>{config.negocio.regimen || 'NO SELECCIONADO'}</span>
+                                        </div>
+                                    </div>
+
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Datos del Receptor (Global)</h4>
                                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border dark:border-slate-700 space-y-3">
                                         <div className="flex justify-between items-center">
                                             <span className="text-xs text-slate-500 font-bold">RFC</span>

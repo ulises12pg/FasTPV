@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSystem } from '../../context/SystemContext';
+import { REGIMENES_FISCALES } from '../../constants/satCatalogs';
 import { 
     Settings, X, Building, FileText, DollarSign, ArrowRightLeft, Trash2, Plus, Database, Upload,
     Star, Zap, Coffee, Printer, Wifi, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella
@@ -102,7 +103,21 @@ export default function ConfigModal() {
                                             maxLength={13}
                                         />
                                     </div>
-                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Régimen Fiscal</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.regimen || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, regimen: e.target.value}})} placeholder="Ej. 626 - Régimen Simplificado de Confianza" /></div>
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase">Régimen Fiscal (SAT)</label>
+                                        <select 
+                                            className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white transition-all outline-none focus:border-indigo-500 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%236b7280%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat pr-10" 
+                                            value={config.negocio.regimen || ''} 
+                                            onChange={e => setConfig({...config, negocio: {...config.negocio, regimen: e.target.value}})}
+                                        >
+                                            <option value="">-- Seleccionar Régimen --</option>
+                                            {REGIMENES_FISCALES.map(r => (
+                                                <option key={r.code} value={`${r.code} - ${r.name}`}>
+                                                    {r.code} - {r.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Dirección</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.direccion} onChange={e => setConfig({...config, negocio: {...config.negocio, direccion: e.target.value}})} /></div>
                                     <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Lugar de Expedición</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.lugarExpedicion || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, lugarExpedicion: e.target.value}})} placeholder="Ej. Pachuca, Hidalgo" /></div>
                                     
