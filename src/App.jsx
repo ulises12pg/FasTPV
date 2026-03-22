@@ -32,7 +32,7 @@ function AppContent() {
     const [draggedIndex, setDraggedIndex] = React.useState(null);
 
     // Log de verificación de carga
-    console.log("FasTPV App iniciada correctamente");
+    //console.log("FasTPV App iniciada correctamente");
 
     // Si no hay usuario logueado, mostrar pantalla de Login
     if (!usuarioActual) return <LoginScreen />;
