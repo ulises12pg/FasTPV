@@ -3,7 +3,7 @@ import { useSystem } from '../../context/SystemContext';
 import { 
     ShoppingBag, X, Package, ChevronRight, Printer, FileText, ScanBarcode, 
     Bluetooth, Wifi, HandHelping, Droplet, CheckCircle, PlusCircle, 
-    Minus, Ticket, Star, Zap, Coffee, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella
+    Minus, Ticket, Star, Zap, Coffee, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella, Search
 } from 'lucide-react';
 
 const ICON_MAP = { Star, Zap, Coffee, Printer, Wifi, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella };
@@ -216,7 +216,23 @@ export default function ProductosModal() {
                         <div className="w-1/2 flex flex-col border-r border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
                             <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                                 <div className="flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
-                                <input className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-1.5 rounded text-sm outline-none focus:border-cyan-500 dark:text-white" placeholder="Buscar producto..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+                                <div className="relative flex items-center">
+                                    <Search size={14} className="absolute left-2.5 text-slate-400"/>
+                                    <input 
+                                        className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-1.5 pl-8 pr-8 rounded text-sm outline-none focus:border-cyan-500 dark:text-white" 
+                                        placeholder="Buscar producto..." 
+                                        value={busqueda} 
+                                        onChange={e => setBusqueda(e.target.value)} 
+                                    />
+                                    {busqueda && (
+                                        <button 
+                                            onClick={() => setBusqueda('')}
+                                            className="absolute right-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-3"><div className="grid grid-cols-1 gap-2">{catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(prod => (<button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoACuenta(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all"><span className="text-2xl">{prod.icon}</span><div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{prod.nombre}</div><div className="flex justify-between items-center mt-1"><span className="text-xs text-cyan-600 font-bold bg-cyan-50 px-2 py-0.5 rounded">${prod.precio}</span><span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Stock: {prod.stock}</span></div></div><ChevronRight size={16} className="text-slate-300"/></button>))}</div></div>
                         </div>

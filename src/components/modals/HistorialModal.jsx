@@ -20,7 +20,7 @@ export default function HistorialModal() {
     if (modalAbierto !== 'historial') return null;
 
     const cancelarVenta = (id) => {
-        if (usuarioActual.rol !== 'admin') return addToast("Acceso denegado. Solo administradores.", 'error');
+        if (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'gerente') return addToast("Acceso denegado. Permisos de Gerente o Administrador requeridos.", 'error');
         const venta = ventas.find(v => v.id === id);
         if (!venta) return;
         if (venta.cancelada) return addToast("Esta venta ya está cancelada.", 'warning');
@@ -130,6 +130,9 @@ export default function HistorialModal() {
                 <div className="p-4 border-b border-slate-200/50 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
                     <h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><History className="text-blue-500"/> Historial de Operaciones</h2>
                     <div className="flex gap-2">
+                        <button onClick={() => setModalAbierto('fiscalGuide')} className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
+                            <FileClock size={16} /> Guía SAT
+                        </button>
                         <button onClick={exportarCSV} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
                             <Download size={16}/> Exportar Excel
                         </button>

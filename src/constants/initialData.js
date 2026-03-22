@@ -1,13 +1,26 @@
-export const SISTEMA = "FasTPV v1.0";
+export const SISTEMA = "FasTPV v2.5.1";
 export const COLOR_CORP = "bg-slate-900 text-white shadow-lg border-b border-slate-800 transition-colors duration-300";
 export const RATIO_PUNTOS = 10;
 
 export const USUARIOS_DEFAULT = [
     { id: 1, nombre: 'Administrador', pin: '1234', rol: 'admin' },
-    { id: 2, nombre: 'Empleado Turno 1', pin: '0000', rol: 'empleado' }
+    { id: 2, nombre: 'Gerente Operativo', pin: '5555', rol: 'gerente' },
+    { id: 3, nombre: 'Empleado Turno 1', pin: '0000', rol: 'empleado' }
 ];
 
-export const CLIENTES_INICIALES = [{ id: 1, nombre: 'Público General', puntos: 0, cupones: [] }];
+export const CLIENTES_INICIALES = [
+    { 
+        id: 1, 
+        nombre: 'Público General', 
+        puntos: 0, 
+        cupones: [],
+        rfc: 'XAXX010101000',
+        regimenFiscal: '616',
+        usoCFDI: 'S01',
+        codigoPostal: '',
+        correo: ''
+    }
+];
 
 export const EQUIPOS_INICIALES = [
     { id: 1, tipo: 'PC', nombre: 'Estación 01', estado: 'libre', precioHora: 15.00 },
@@ -19,8 +32,8 @@ export const EQUIPOS_INICIALES = [
 ];
 
 export const PRODUCTOS_BASE_DEFAULT = [
-    { id: 1, nombre: 'Coca Cola 600ml', precio: 18.00, icon: '🥤', stock: 24, categoria: 'Bebidas', codigo: '7501055300075' },
-    { id: 2, nombre: 'Papas Sabritas', precio: 16.00, icon: '🍟', stock: 15, categoria: 'Snacks', codigo: '7501011123456' },
+    { id: 1, nombre: 'Coca Cola 600ml', precio: 18.00, icon: '🥤', stock: 24, categoria: 'Bebidas', codigo: '7501055300075', claveProdServ: '50202306', claveUnidad: 'H87', objetoImpuesto: '02' },
+    { id: 2, nombre: 'Papas Sabritas', precio: 16.00, icon: '🍟', stock: 15, categoria: 'Snacks', codigo: '7501011123456', claveProdServ: '50192100', claveUnidad: 'H87', objetoImpuesto: '02' },
 ];
 
 export const CONFIG_INICIAL = {

@@ -11,6 +11,15 @@ node_modules/
 # Build output
 dist/
 dist-ssr/
+dist-app/
+dist-electron/
+.eb-cache/
+*.zip
+release/
+out/
+*.exe
+*.msi
+*.dmg
 
 # Environment variables
 .env

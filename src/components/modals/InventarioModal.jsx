@@ -5,7 +5,17 @@ import { Html5Qrcode } from 'html5-qrcode';
 
 export default function InventarioModal() {
     const { modalAbierto, setModalAbierto, catalogo, setCatalogo, addToast, playSound } = useSystem();
-    const [itemForm, setItemForm] = useState({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' });
+    const [itemForm, setItemForm] = useState({ 
+        id: null, 
+        nombre: '', 
+        precio: '', 
+        stock: '', 
+        categoria: 'General', 
+        codigo: '',
+        claveProdServ: '',
+        claveUnidad: 'H87',
+        objetoImpuesto: '02'
+    });
     const [showCamera, setShowCamera] = useState(false);
     const html5QrCodeRef = useRef(null);
     const [busqueda, setBusqueda] = useState('');
@@ -24,7 +34,19 @@ export default function InventarioModal() {
             setItemForm(producto);
             addToast("Producto encontrado", 'success');
         } else {
-            setItemForm(prev => ({ ...prev, id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: code, icon: '📦' }));
+            setItemForm(prev => ({ 
+                ...prev, 
+                id: null, 
+                nombre: '', 
+                precio: '', 
+                stock: '', 
+                categoria: 'General', 
+                codigo: code, 
+                icon: '📦',
+                claveProdServ: '',
+                claveUnidad: 'H87',
+                objetoImpuesto: '02'
+            }));
             playSound('warning');
             addToast("Código nuevo escaneado", 'info');
         }
@@ -113,7 +135,17 @@ export default function InventarioModal() {
             addToast("Producto agregado", 'success');
         }
         
-        setItemForm({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' });
+        setItemForm({ 
+            id: null, 
+            nombre: '', 
+            precio: '', 
+            stock: '', 
+            categoria: 'General', 
+            codigo: '',
+            claveProdServ: '',
+            claveUnidad: 'H87',
+            objetoImpuesto: '02'
+        });
         if(showCamera) playSound('success');
     };
 
@@ -137,8 +169,8 @@ export default function InventarioModal() {
                 
                 <div className="flex-1 p-6 bg-slate-50 dark:bg-slate-900 flex flex-col md:flex-row gap-6 overflow-hidden">
                     {/* Formulario */}
-                    <div className="w-full md:w-1/3 bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border dark:border-slate-700 h-fit space-y-4 overflow-y-auto shrink-0">
-                        <h3 className="font-bold text-slate-700 dark:text-white border-b dark:border-slate-700 pb-2 flex justify-between items-center">{itemForm.id ? "Editar Producto" : "Nuevo Producto"} {itemForm.id && <button onClick={() => setItemForm({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '' })} className="text-xs text-indigo-600 dark:text-indigo-400 underline">Cancelar</button>}</h3>
+                    <div className="w-full md:w-1/3 bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border dark:border-slate-700 max-h-full space-y-4 overflow-y-auto custom-scrollbar shrink-0">
+                        <h3 className="font-bold text-slate-700 dark:text-white border-b dark:border-slate-700 pb-2 flex justify-between items-center">{itemForm.id ? "Editar Producto" : "Nuevo Producto"} {itemForm.id && <button onClick={() => setItemForm({ id: null, nombre: '', precio: '', stock: '', categoria: 'General', codigo: '', claveProdServ: '', claveUnidad: 'H87', objetoImpuesto: '02' })} className="text-xs text-indigo-600 dark:text-indigo-400 underline">Cancelar</button>}</h3>
                         
                         <div className="border rounded-lg bg-slate-100 dark:bg-slate-900 overflow-hidden relative"><button onClick={() => setShowCamera(!showCamera)} className={`w-full py-2 text-xs font-bold flex justify-center items-center gap-2 transition-colors ${showCamera ? 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300' : 'bg-slate-800 text-white hover:bg-slate-900'}`}>{showCamera ? <><CameraOff size={14}/> Detener Cámara</> : <><Camera size={14}/> Usar Cámara / QR</>}</button>{showCamera && <div id="reader" className="w-full h-48 bg-black"></div>}</div>
 
@@ -146,6 +178,28 @@ export default function InventarioModal() {
                         <div className="flex gap-2"><div className="flex-1"><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Precio</label><input type="number" className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500 transition-all" value={itemForm.precio} onChange={e => setItemForm({...itemForm, precio: e.target.value})} placeholder="0.00" /></div><div className="flex-1"><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Stock</label><input type="number" className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500 transition-all" value={itemForm.stock} onChange={e => setItemForm({...itemForm, stock: e.target.value})} placeholder="0" /></div></div>
                         <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Categoría</label><select className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-2 rounded mt-1 outline-none focus:border-indigo-500 transition-all" value={itemForm.categoria} onChange={e => setItemForm({...itemForm, categoria: e.target.value})}><option value="General">General</option><option value="Bebidas">Bebidas</option><option value="Snacks">Snacks</option><option value="Papelería">Papelería</option><option value="Tecnología">Tecnología</option></select></div>
                         <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400">Código de Barras</label><div className="relative"><input className="w-full border dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white p-2 pl-8 rounded mt-1 outline-none focus:border-indigo-500 transition-all" value={itemForm.codigo} onChange={e => setItemForm({...itemForm, codigo: e.target.value})} placeholder="Escanear..." /><ScanBarcode size={16} className="absolute left-2.5 top-4 text-slate-400"/></div></div>
+                        
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-dashed dark:border-slate-700 space-y-3">
+                            <div className="text-[10px] font-bold text-slate-400 uppercase">Datos Fiscales SAT</div>
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <label className="text-[10px] font-bold text-slate-500">Clave Prod/Serv</label>
+                                    <input className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-1.5 rounded text-xs outline-none focus:border-indigo-500" value={itemForm.claveProdServ} onChange={e => setItemForm({...itemForm, claveProdServ: e.target.value})} placeholder="8 dígitos" />
+                                </div>
+                                <div className="w-1/3">
+                                    <label className="text-[10px] font-bold text-slate-500">Unidad</label>
+                                    <input className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-1.5 rounded text-xs outline-none focus:border-indigo-500" value={itemForm.claveUnidad} onChange={e => setItemForm({...itemForm, claveUnidad: e.target.value})} placeholder="H87" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-500">Objeto Impuesto</label>
+                                <select className="w-full border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white p-1.5 rounded text-xs outline-none focus:border-indigo-500" value={itemForm.objetoImpuesto} onChange={e => setItemForm({...itemForm, objetoImpuesto: e.target.value})}>
+                                    <option value="01">01 - No objeto de impuesto</option>
+                                    <option value="02">02 - Sí objeto de impuesto</option>
+                                    <option value="03">03 - Sí objeto de impuesto no obligado al desglose</option>
+                                </select>
+                            </div>
+                        </div>
                         <button onClick={guardarProductoInventario} className="w-full bg-indigo-600 text-white py-2.5 rounded font-bold hover:bg-indigo-700 shadow transition-all flex justify-center items-center gap-2"><Save size={18}/> Guardar</button>
                     </div>
 
@@ -153,10 +207,10 @@ export default function InventarioModal() {
                     <div className="w-full md:w-2/3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 overflow-hidden flex flex-col">
                         {/* Barra de Búsqueda */}
                         <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-2.5 text-slate-400"/>
+                            <div className="relative flex items-center">
+                                <Search size={16} className="absolute left-3 text-slate-400"/>
                                 <input 
-                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-2 pl-9 rounded-lg text-sm outline-none focus:border-indigo-500 transition-all dark:text-white" 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-2 pl-9 pr-10 rounded-lg text-sm outline-none focus:border-indigo-500 transition-all dark:text-white" 
                                     placeholder="Buscar por nombre o código..." 
                                     value={busqueda} 
                                     onChange={e => setBusqueda(e.target.value)}
@@ -170,6 +224,14 @@ export default function InventarioModal() {
                                         }
                                     }}
                                 />
+                                {busqueda && (
+                                    <button 
+                                        onClick={() => setBusqueda('')}
+                                        className="absolute right-3 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <div className="overflow-y-auto flex-1 custom-scrollbar">

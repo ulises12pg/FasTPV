@@ -114,9 +114,9 @@ export default function CobrarModal() {
 
     return (
         <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md modal-anim border border-white/20 dark:border-slate-700">
-                <div className="bg-slate-800 p-4 text-white flex justify-between items-center rounded-t-xl"><h2 className="font-bold flex items-center gap-2"><Ticket className="text-emerald-400" /> Checkout</h2><button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-700 transition-colors"><X size={20}/></button></div>
-                <div className="p-6 space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
+                <div className="bg-slate-800 p-4 text-white flex justify-between items-center rounded-t-xl shrink-0"><h2 className="font-bold flex items-center gap-2"><Ticket className="text-emerald-400" /> Checkout</h2><button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-700 transition-colors"><X size={20}/></button></div>
+                <div className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
                     <div><label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Cliente</label><select className="w-full border dark:border-slate-600 p-2 rounded mt-1 text-sm bg-slate-50 dark:bg-slate-800 dark:text-white" value={checkoutData.clienteId || 1} onChange={e => setCheckoutData({ ...checkoutData, clienteId: parseInt(e.target.value) })}>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre} {c.id !== 1 ? `(${c.puntos} pts)` : ''}</option>)}</select></div>
                     <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded border dark:border-slate-700 space-y-2 text-sm">
                         <div className="flex justify-between text-slate-600 dark:text-slate-300"><span>Renta</span><span>${subRenta.toFixed(2)}</span></div>

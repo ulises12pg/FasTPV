@@ -274,10 +274,10 @@ export default function VentaDirectaModal() {
                         <div className="w-full sm:w-1/2 flex flex-col border-r border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
                             <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                                 <div className="flex justify-between items-center"><h3 className="font-bold text-xs text-slate-500 uppercase flex items-center gap-2"><Package size={14}/> Inventario</h3></div>
-                                <div className="relative">
-                                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400"/>
+                                <div className="relative flex items-center">
+                                    <Search size={14} className="absolute left-2.5 text-slate-400"/>
                                     <input 
-                                        className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-1.5 pl-8 rounded text-sm outline-none focus:border-orange-500 dark:text-white" 
+                                        className="w-full border dark:border-slate-600 bg-white dark:bg-slate-900 p-1.5 pl-8 pr-8 rounded text-sm outline-none focus:border-orange-500 dark:text-white" 
                                         placeholder="Buscar producto..." 
                                         value={busqueda} 
                                         onChange={e => setBusqueda(e.target.value)} 
@@ -291,6 +291,14 @@ export default function VentaDirectaModal() {
                                         }}
                                         autoFocus 
                                     />
+                                    {busqueda && (
+                                        <button 
+                                            onClick={() => setBusqueda('')}
+                                            className="absolute right-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">

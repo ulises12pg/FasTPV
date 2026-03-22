@@ -72,13 +72,13 @@ export default function Navbar() {
                     <div className="h-6 w-px bg-slate-700 mx-1"></div>
 
                     {/* --- SECCIÓN 2 (Centro): Operatividad --- */}
-                    {usuarioActual?.rol === 'admin' && (
+                    {(usuarioActual?.rol === 'admin' || usuarioActual?.rol === 'gerente') && (
                         <button onClick={() => setModalAbierto('estaciones')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-blue-400 transition-colors" title="Estaciones"><Monitor size={20}/></button>
                     )}
                     
                     <button onClick={() => setModalAbierto('clientes')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-pink-400 transition-colors" title="Clientes"><Users size={20}/></button>
                     
-                    {usuarioActual?.rol === 'admin' && (
+                    {(usuarioActual?.rol === 'admin' || usuarioActual?.rol === 'gerente') && (
                         <button onClick={() => setModalAbierto('inventario')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-emerald-400 transition-colors" title="Inventario"><Package size={20}/></button>
                     )}
                     
@@ -98,7 +98,12 @@ export default function Navbar() {
                     )}
 
                     <div className="hidden md:flex items-center gap-2">
-                        <div className="bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-xs flex items-center gap-2"><Shield size={12} className={usuarioActual?.rol === 'admin' ? 'text-blue-400' : 'text-slate-500'}/><span className="capitalize font-bold text-slate-300">{usuarioActual?.nombre}</span></div>
+                        <div className="group bg-slate-800 border border-slate-700 p-2 hover:px-3 rounded-full text-xs flex items-center gap-0 hover:gap-2 transition-all duration-300 cursor-help shadow-sm">
+                            <Shield size={14} className={usuarioActual?.rol === 'admin' ? 'text-blue-400' : usuarioActual?.rol === 'gerente' ? 'text-amber-400' : 'text-slate-500'}/>
+                            <span className="capitalize font-bold text-slate-300 max-w-0 overflow-hidden group-hover:max-w-[120px] transition-all duration-500 whitespace-nowrap">
+                                {usuarioActual?.nombre}
+                            </span>
+                        </div>
                         <button onClick={() => setModalAbierto('cambiar_pin')} className="bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-400 hover:text-white transition-colors" title="Cambiar PIN"><Key size={12} /></button>
                     </div>
                     

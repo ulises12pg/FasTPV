@@ -8,7 +8,7 @@ import {
 const AVAILABLE_ICONS = { Star, Zap, Coffee, Printer, Wifi, Phone, Gift, Truck, Music, Globe, Briefcase, Umbrella };
 
 export default function ConfigModal() {
-    const { modalAbierto, setModalAbierto, config, setConfig, addToast } = useSystem();
+    const { modalAbierto, setModalAbierto, config, setConfig, addToast, resetSistema } = useSystem();
     const [nuevoServicio, setNuevoServicio] = useState({ nombre: '', precio: '', icon: 'Star' });
 
     // Helper para inputs de configuración (maneja número u objeto)
@@ -102,7 +102,7 @@ export default function ConfigModal() {
                                             maxLength={13}
                                         />
                                     </div>
-                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Régimen Fiscal</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.regimen || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, regimen: e.target.value}})} placeholder="Ej. 626 - Régimen Simplificado de Confianza" /></div>
+                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Régimen Fiscal</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.regimen || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, regimen: e.target.value}})} placeholder="Ej. 626 - Régimen Simplificado de Confianza" /></div>
                                     <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Dirección</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.direccion} onChange={e => setConfig({...config, negocio: {...config.negocio, direccion: e.target.value}})} /></div>
                                     <div className="md:col-span-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Lugar de Expedición</label><input className="w-full border p-1.5 rounded text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" value={config.negocio.lugarExpedicion || ''} onChange={e => setConfig({...config, negocio: {...config.negocio, lugarExpedicion: e.target.value}})} placeholder="Ej. Pachuca, Hidalgo" /></div>
                                     
@@ -135,13 +135,24 @@ export default function ConfigModal() {
                                 <button onClick={() => setModalAbierto('config_precios')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-colors dark:text-white"><DollarSign size={24}/> Precios</button>
                             </div>
                             
-                            {/* Botón de Respaldo Integrado */}
-                            <button 
-                                onClick={() => setModalAbierto('backup')} 
-                                className="w-full bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors text-amber-800 dark:text-amber-400"
-                            >
-                                <Database size={20}/> Respaldo y Restauración
-                            </button>
+                            {/* Botones de Mantenimiento */}
+                            <div className="space-y-2 border-t dark:border-slate-700 pt-5">
+                                <h3 className="font-bold text-slate-400 text-[10px] uppercase mb-1">Mantenimiento</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <button 
+                                        onClick={() => setModalAbierto('backup')} 
+                                        className="bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors text-amber-700 dark:text-amber-500 text-xs"
+                                    >
+                                        <Database size={16}/> Respaldos
+                                    </button>
+                                    <button 
+                                        onClick={resetSistema}
+                                        className="bg-rose-50 dark:bg-rose-900/10 hover:bg-rose-100 dark:hover:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors text-rose-700 dark:text-rose-500 text-xs"
+                                    >
+                                        <Trash2 size={16}/> Reiniciar Sistema
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                     

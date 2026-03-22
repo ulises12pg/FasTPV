@@ -4,7 +4,14 @@ import { Users, X, Trophy, Trash2, UserPlus } from 'lucide-react';
 
 export default function ClientesModal() {
     const { modalAbierto, setModalAbierto, clientes, setClientes, addToast } = useSystem();
-    const [clienteForm, setClienteForm] = useState({ nombre: '' });
+    const [clienteForm, setClienteForm] = useState({ 
+        nombre: '', 
+        rfc: '', 
+        regimenFiscal: '616', 
+        usoCFDI: 'S01', 
+        codigoPostal: '', 
+        correo: '' 
+    });
 
     if (modalAbierto !== 'clientes') return null;
 
@@ -14,12 +21,17 @@ export default function ClientesModal() {
         const nuevoCliente = {
             id: Date.now(),
             nombre: clienteForm.nombre.trim(),
+            rfc: clienteForm.rfc.trim().toUpperCase(),
+            regimenFiscal: clienteForm.regimenFiscal,
+            usoCFDI: clienteForm.usoCFDI,
+            codigoPostal: clienteForm.codigoPostal.trim(),
+            correo: clienteForm.correo.trim(),
             puntos: 0,
             cupones: []
         };
         
         setClientes(prev => [...prev, nuevoCliente]);
-        setClienteForm({ nombre: '' });
+        setClienteForm({ nombre: '', rfc: '', regimenFiscal: '616', usoCFDI: 'S01', codigoPostal: '', correo: '' });
         addToast("Cliente registrado correctamente", 'success');
     };
 
@@ -33,27 +45,91 @@ export default function ClientesModal() {
 
     return (
         <div className="fixed inset-0 bg-slate-500/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
-                <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
+                <div className="bg-slate-800 p-4 text-white flex justify-between items-center shrink-0">
                     <h2 className="font-bold flex items-center gap-2"><Users className="text-pink-400"/> Gestión de Clientes</h2>
                     <button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-700 transition-colors"><X size={20}/></button>
                 </div>
                 
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/50">
+                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex-1 overflow-y-auto custom-scrollbar">
                     {/* Formulario Agregar */}
-                    <div className="flex gap-2 mb-6">
-                        <div className="relative flex-1">
-                            <input 
-                                className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2.5 pl-3 rounded-lg text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:text-white transition-all" 
-                                placeholder="Nombre del Nuevo Cliente" 
-                                value={clienteForm.nombre} 
-                                onChange={e => setClienteForm({ nombre: e.target.value })}
-                                onKeyDown={(e) => e.key === 'Enter' && agregarCliente()}
-                                autoFocus
-                            />
+                    <div className="space-y-3 mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl border dark:border-slate-700">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nombre / Razón Social</label>
+                                <input 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-sm outline-none focus:border-pink-500 dark:text-white transition-all" 
+                                    placeholder="Nombre del Cliente" 
+                                    value={clienteForm.nombre} 
+                                    onChange={e => setClienteForm({ ...clienteForm, nombre: e.target.value })}
+                                />
+                            </div>
+                            <div className="w-1/3">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">RFC</label>
+                                <input 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-sm outline-none focus:border-pink-500 dark:text-white transition-all font-mono" 
+                                    placeholder="XAXX010101000" 
+                                    value={clienteForm.rfc} 
+                                    onChange={e => setClienteForm({ ...clienteForm, rfc: e.target.value })}
+                                />
+                            </div>
                         </div>
-                        <button onClick={agregarCliente} className="bg-pink-600 hover:bg-pink-700 text-white px-4 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all">
-                            <UserPlus size={18}/> <span className="hidden sm:inline">Agregar</span>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Régimen Fiscal</label>
+                                <select 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-xs outline-none focus:border-pink-500 dark:text-white"
+                                    value={clienteForm.regimenFiscal}
+                                    onChange={e => setClienteForm({...clienteForm, regimenFiscal: e.target.value})}
+                                >
+                                    <option value="601">601 - General de Ley Personas Morales</option>
+                                    <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
+                                    <option value="605">605 - Sueldos y Salarios</option>
+                                    <option value="606">606 - Arrendamiento</option>
+                                    <option value="612">612 - Actividades Empresariales y Profesionales</option>
+                                    <option value="616">616 - Sin obligaciones fiscales</option>
+                                    <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Uso de CFDI</label>
+                                <select 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-xs outline-none focus:border-pink-500 dark:text-white"
+                                    value={clienteForm.usoCFDI}
+                                    onChange={e => setClienteForm({...clienteForm, usoCFDI: e.target.value})}
+                                >
+                                    <option value="G01">G01 - Adquisición de mercancías</option>
+                                    <option value="G03">G03 - Gastos en general</option>
+                                    <option value="S01">S01 - Sin efectos fiscales</option>
+                                    <option value="CP01">CP01 - Pagos</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Correo Electrónico</label>
+                                <input 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-sm outline-none focus:border-pink-500 dark:text-white" 
+                                    placeholder="correo@ejemplo.com" 
+                                    value={clienteForm.correo} 
+                                    onChange={e => setClienteForm({ ...clienteForm, correo: e.target.value })}
+                                />
+                            </div>
+                            <div className="w-1/4">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">C.P.</label>
+                                <input 
+                                    className="w-full border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded-lg text-sm outline-none focus:border-pink-500 dark:text-white" 
+                                    placeholder="00000" 
+                                    value={clienteForm.codigoPostal} 
+                                    onChange={e => setClienteForm({ ...clienteForm, codigoPostal: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <button onClick={agregarCliente} className="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-pink-500/20 transition-all mt-2">
+                            <UserPlus size={18}/> Registrar Cliente Fiscal
                         </button>
                     </div>
 

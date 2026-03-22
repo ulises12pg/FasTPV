@@ -43,7 +43,7 @@ export default function EstacionesModal() {
                     <button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><X size={20} className="text-slate-500 dark:text-slate-400"/></button>
                 </div>
                 
-                <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-6 overflow-hidden flex-1">
+                <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-6 overflow-hidden flex-1 overflow-y-auto custom-scrollbar">
                     {/* Formulario */}
                     <div className="w-full md:w-1/3 bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm h-fit space-y-4 border border-slate-100 dark:border-slate-700 shrink-0">
                         <h3 className="font-bold text-sm text-slate-500 uppercase border-b dark:border-slate-700 pb-2">{estacionForm.id ? "Editar Estación" : "Nueva Estación"}</h3>

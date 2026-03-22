@@ -115,8 +115,14 @@ export const SystemProvider = ({ children }) => {
         setEquipos(nuevosEquipos);
     };
 
-    // Aquí irían el resto de funciones (abrirCaja, cobrar, etc.) expuestas en el value
-    // Para brevedad, expongo lo básico, pero deberías mover todas las funciones helper aquí.
+    const resetSistema = () => {
+        if (window.confirm("¿ESTÁS SEGURO? Se borrarán TODOS los datos (Ventas, Clientes, Inventario y Usuarios) y el sistema volverá a su estado inicial.")) {
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sys-')) localStorage.removeItem(key);
+            });
+            window.location.reload();
+        }
+    };
 
     const value = {
         usuarioActual, setUsuarioActual,
@@ -134,6 +140,7 @@ export const SystemProvider = ({ children }) => {
         darkMode, toggleDarkMode,
         modoEdicion, setModoEdicion,
         reordenarEquipos,
+        resetSistema,
         // Helpers
         playSound
     };

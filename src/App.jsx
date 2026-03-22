@@ -22,6 +22,7 @@ import ConfirmarResetModal from './components/modals/ConfirmarResetModal';
 import LegalModal from './components/modals/LegalModal';
 import VentaDirectaModal from './components/modals/VentaDirectaModal';
 import LogoutModal from './components/modals/LogoutModal';
+import FiscalGuideModal from './components/modals/FiscalGuideModal';
 
 // Iconos para Toasts
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info, Move, LogOut } from 'lucide-react';
@@ -54,7 +55,7 @@ function AppContent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f2f2f7] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans pb-10 transition-colors duration-300">
+        <div className="min-h-screen bg-slate-200 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans pb-10 transition-colors duration-300">
             <Navbar />
             
             <main className="max-w-7xl mx-auto px-4 py-6">
@@ -123,6 +124,7 @@ function AppContent() {
             {modalAbierto === 'legal' && <LegalModal />}
             {modalAbierto === 'venta_directa' && <VentaDirectaModal />}
             {modalAbierto === 'logout_confirm' && <LogoutModal />}
+            {modalAbierto === 'fiscalGuide' && <FiscalGuideModal />}
             
             {/* --- SISTEMA DE NOTIFICACIONES (TOASTS) --- */}
             <div className="fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none">

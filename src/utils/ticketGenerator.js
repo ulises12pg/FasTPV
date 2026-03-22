@@ -405,6 +405,23 @@ export const generarReporteCaja = (cajaInfo, ventasList, usuario = {}, config = 
 
         y += 35;
 
+        // --- AUDITORÍA DE CAJA (ARQUEO) ---
+        if (cajaInfo.contado !== undefined) {
+            doc.setFontSize(12);
+            doc.setTextColor(...colorPrimary);
+            doc.setFont("helvetica", "bold");
+            doc.text("AUDITORÍA DE CAJA (ARQUEO)", 15, y);
+            doc.line(15, y+2, 200, y+2);
+            y += 10;
+
+            const colorDiff = cajaInfo.diferencia === 0 ? [16, 185, 129] : (cajaInfo.diferencia > 0 ? colorSecondary : [239, 68, 68]);
+            
+            drawCard(15, "Efectivo Contado", cajaInfo.contado, colorPrimary);
+            drawCard(80, "Diferencia", cajaInfo.diferencia, colorDiff);
+            
+            y += 35;
+        }
+
         // --- TABLA DESGLOSE ---
         doc.autoTable({
             startY: y,
