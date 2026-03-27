@@ -303,19 +303,49 @@ export default function VentaDirectaModal() {
                             </div>
                             <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                                 <div className="grid grid-cols-1 gap-2">
-                                    {catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(prod => (
-                                        <button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProducto(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all group">
-                                            <span className="text-2xl">{prod.icon}</span>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-orange-700 dark:group-hover:text-orange-400">{prod.nombre}</div>
-                                                <div className="flex justify-between items-center mt-1">
-                                                    <span className="text-xs text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded">${prod.precio}</span>
-                                                    <span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Stock: {prod.stock}</span>
+                                    {catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(prod => {
+                                        const enCarrito = carrito.find(c => c.idCatalogo === prod.id);
+                                        const stockRestante = prod.stock - (enCarrito ? enCarrito.cantidad : 0);
+                                        return (
+                                            <div key={prod.id} className={`flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border hover:border-orange-300 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 hover:shadow-md text-left transition-all group relative rounded-2xl ${stockRestante < 1 ? 'opacity-70 border-rose-200' : 'border-slate-100 dark:border-slate-700'}`}>
+                                                <span className="text-2xl">{prod.icon}</span>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{prod.nombre}</div>
+                                                    <div className="flex justify-between items-center mt-1">
+                                                        <span className="text-xs text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded">${prod.precio}</span>
+                                                        <span className={`text-[10px] px-1.5 rounded font-bold ${stockRestante < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Disp: {Math.max(0, stockRestante)}</span>
+                                                    </div>
                                                 </div>
+                                                
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {enCarrito && (
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); disminuirCantidad(enCarrito.uid); }}
+                                                            className="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-full transition-colors shadow-sm"
+                                                            title="Quitar 1"
+                                                        >
+                                                            <Minus size={16} strokeWidth={3}/>
+                                                        </button>
+                                                    )}
+                                                    <button 
+                                                        disabled={stockRestante < 1}
+                                                        onClick={(e) => { e.stopPropagation(); agregarProducto(prod); }}
+                                                        className="p-1.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-full transition-colors disabled:opacity-50 shadow-sm pl-[7px] pr-[7px]"
+                                                        title="Agregar 1"
+                                                    >
+                                                        <PlusCircle size={16} strokeWidth={3}/>
+                                                    </button>
+                                                </div>
+                                                
+                                                {/* Badge if in cart */}
+                                                {enCarrito && (
+                                                    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-md border-2 border-white dark:border-slate-800 z-10 pointer-events-none">
+                                                        {enCarrito.cantidad}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <PlusCircle size={20} className="text-slate-200 group-hover:text-orange-500"/>
-                                        </button>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -422,7 +452,36 @@ export default function VentaDirectaModal() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50 custom-scrollbar">
-                            {carrito.length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span></div>) : (carrito.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group"><div><div className="font-bold text-sm text-slate-800 dark:text-white">{i.nombre}</div><div className="text-xs text-slate-400">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="flex items-center"><button onClick={() => disminuirCantidad(i.uid)} className="p-1 text-slate-300 hover:text-amber-500 transition-colors" title="Disminuir"><Minus size={16}/></button><button onClick={() => eliminarItem(i.uid)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors" title="Eliminar"><X size={16}/></button></div></div></div>)))}
+                            {carrito.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
+                                    <ShoppingBag size={48} className="mb-2 stroke-1"/>
+                                    <span className="text-xs font-medium">Carrito vacío</span>
+                                </div>
+                            ) : (
+                                carrito.map((i) => (
+                                    <div key={i.uid} className="bg-white dark:bg-slate-700 p-2 sm:p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group transition-all hover:border-orange-300 min-h-[58px]">
+                                        <div className="flex-1 min-w-0 pr-1">
+                                            <div className="font-bold text-sm text-slate-800 dark:text-white truncate">{i.nombre}</div>
+                                            <div className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">{i.cantidad} x ${i.precio.toFixed(2)}</div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                            {/* Acciones al posar el ratón */}
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <button onClick={() => disminuirCantidad(i.uid)} className="p-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Quitar 1">
+                                                    <Minus size={14} strokeWidth={3}/>
+                                                </button>
+                                                <button onClick={() => eliminarItem(i.uid)} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-md hover:bg-rose-500 hover:text-white transition-colors shadow-sm" title="Quitar todo el conjunto">
+                                                    <X size={14} strokeWidth={3}/>
+                                                </button>
+                                            </div>
+                                            <div className="font-black text-emerald-600 dark:text-emerald-400 text-[13px] sm:text-sm whitespace-nowrap text-right min-w-[3rem]">
+                                                ${(i.precio * (i.cantidad || 1)).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
 
                         <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">

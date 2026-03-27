@@ -234,7 +234,53 @@ export default function ProductosModal() {
                                     )}
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-3"><div className="grid grid-cols-1 gap-2">{catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(prod => (<button key={prod.id} disabled={prod.stock < 1} onClick={() => agregarProductoACuenta(prod)} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-md text-left disabled:opacity-50 transition-all"><span className="text-2xl">{prod.icon}</span><div className="min-w-0 flex-1"><div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{prod.nombre}</div><div className="flex justify-between items-center mt-1"><span className="text-xs text-cyan-600 font-bold bg-cyan-50 px-2 py-0.5 rounded">${prod.precio}</span><span className={`text-[10px] px-1.5 rounded font-bold ${prod.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Stock: {prod.stock}</span></div></div><ChevronRight size={16} className="text-slate-300"/></button>))}</div></div>
+                            <div className="flex-1 overflow-y-auto p-3">
+                                <div className="grid grid-cols-1 gap-2">
+                                    {catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(prod => {
+                                        const enCuenta = eqSel.cuenta.find(c => c.idCatalogo === prod.id);
+                                        const stockRestante = prod.stock - (enCuenta ? enCuenta.cantidad : 0);
+                                        return (
+                                            <div key={prod.id} className={`flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-md text-left transition-all group relative rounded-lg ${stockRestante < 1 ? 'opacity-70 border-rose-200' : 'border-slate-100 dark:border-slate-700'}`}>
+                                                <span className="text-2xl">{prod.icon}</span>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{prod.nombre}</div>
+                                                    <div className="flex justify-between items-center mt-1">
+                                                        <span className="text-xs text-cyan-600 font-bold bg-cyan-50 px-2 py-0.5 rounded">${prod.precio}</span>
+                                                        <span className={`text-[10px] px-1.5 rounded font-bold ${stockRestante < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>Disp: {Math.max(0, stockRestante)}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {enCuenta && (
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); disminuirCantidadDeCuenta(enCuenta.uid); }}
+                                                            className="p-1.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-full transition-colors shadow-sm"
+                                                            title="Quitar 1"
+                                                        >
+                                                            <Minus size={16} strokeWidth={3}/>
+                                                        </button>
+                                                    )}
+                                                    <button 
+                                                        disabled={stockRestante < 1}
+                                                        onClick={(e) => { e.stopPropagation(); agregarProductoACuenta(prod); }}
+                                                        className="p-1.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-full transition-colors disabled:opacity-50 shadow-sm pl-[7px] pr-[7px]"
+                                                        title="Agregar 1"
+                                                    >
+                                                        <PlusCircle size={16} strokeWidth={3}/>
+                                                    </button>
+                                                </div>
+                                                
+                                                {/* Badge if in account */}
+                                                {enCuenta && (
+                                                    <div className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-md border-2 border-white dark:border-slate-800 z-10 pointer-events-none">
+                                                        {enCuenta.cantidad}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
                         {/* Middle Column: Servicios */}
                         <div className="w-1/2 flex flex-col bg-white dark:bg-slate-800">
@@ -269,7 +315,69 @@ export default function ProductosModal() {
                         </div>
                     </div>
                     {/* Right Column: Carrito */}
-                    <div className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20"><div className="p-4 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center"><div><h3 className="font-bold text-slate-700 dark:text-white text-sm uppercase tracking-wide">Cuenta Actual</h3><p className="text-[10px] text-slate-400">Resumen de consumos</p></div><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span></div><div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">{eqSel.cuenta.map((i) => (<div key={i.uid} className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 group relative hover:border-indigo-300 transition-all"><div className="flex justify-between items-center"><div><div className="font-bold text-sm text-slate-800 dark:text-white leading-tight">{i.nombre}</div>{i.esManual && <span className="text-[10px] bg-slate-100 dark:bg-slate-600 px-1 rounded text-slate-500 dark:text-slate-300">Manual</span>}<div className="text-[10px] text-slate-400 mt-0.5">{i.cantidad} x ${i.precio}</div></div><div className="flex items-center gap-3"><div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${(i.precio * (i.cantidad || 1)).toFixed(2)}</div><div className="flex items-center"><button onClick={() => disminuirCantidadDeCuenta(i.uid)} className="p-1 text-slate-300 hover:text-amber-500 transition-colors" title="Disminuir"><Minus size={16}/></button><button onClick={() => eliminarProductoDeCuenta(i.uid)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors" title="Eliminar"><X size={16}/></button></div></div></div></div>))}{eqSel.cuenta.length === 0 && (<div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><ShoppingBag size={48} className="mb-2 stroke-1"/><span className="text-xs font-medium">Carrito vacío</span><span className="text-[10px]">Agregue productos o servicios</span></div>)}</div><div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"><div className="space-y-1 mb-4"><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Subtotal Productos</span><span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>Renta Estimada (Tiempo)</span><span>${calcularTotalRenta(eqSel).toFixed(2)}</span></div></div><div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 dark:border-slate-600 mb-4"><span className="font-bold text-lg text-slate-700 dark:text-white">Total a Pagar</span><span className="font-black text-2xl text-indigo-600 dark:text-indigo-400 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span></div><button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"><Ticket size={18}/> Cobrar Cuenta</button></div></div>
+                    <div className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl z-20">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-slate-700 dark:text-white text-sm uppercase tracking-wide">Cuenta Actual</h3>
+                                <p className="text-[10px] text-slate-400">Resumen de consumos</p>
+                            </div>
+                            <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">{eqSel.cuenta.length} Items</span>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 dark:bg-slate-900/50">
+                            {eqSel.cuenta.map((i) => (
+                                <div key={i.uid} className="bg-white dark:bg-slate-700 p-2 sm:p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex justify-between items-center group transition-all hover:border-indigo-300 min-h-[58px]">
+                                    <div className="flex-1 min-w-0 pr-1">
+                                        <div className="font-bold text-sm text-slate-800 dark:text-white truncate flex items-center gap-1">
+                                            <span className="truncate">{i.nombre}</span>
+                                            {i.esManual && <span className="text-[9px] shrink-0 bg-slate-100 dark:bg-slate-600 px-1 py-0.5 rounded text-slate-500 dark:text-slate-300 font-bold uppercase">Manual</span>}
+                                        </div>
+                                        <div className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">{i.cantidad} x ${i.precio.toFixed(2)}</div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                        {/* Acciones al posar el ratón */}
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <button onClick={() => disminuirCantidadDeCuenta(i.uid)} className="p-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Quitar 1">
+                                                <Minus size={14} strokeWidth={3}/>
+                                            </button>
+                                            <button onClick={() => eliminarProductoDeCuenta(i.uid)} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-md hover:bg-rose-500 hover:text-white transition-colors shadow-sm" title="Quitar todo el conjunto">
+                                                <X size={14} strokeWidth={3}/>
+                                            </button>
+                                        </div>
+                                        <div className="font-black text-emerald-600 dark:text-emerald-400 text-[13px] sm:text-sm whitespace-nowrap text-right min-w-[3rem]">
+                                            ${(i.precio * (i.cantidad || 1)).toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {eqSel.cuenta.length === 0 && (
+                                <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
+                                    <ShoppingBag size={48} className="mb-2 stroke-1"/>
+                                    <span className="text-xs font-medium">Carrito vacío</span>
+                                    <span className="text-[10px]">Agregue productos o servicios</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                            <div className="space-y-1 mb-4">
+                                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                                    <span>Subtotal Productos</span>
+                                    <span>${eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                                    <span>Renta Estimada (Tiempo)</span>
+                                    <span>${calcularTotalRenta(eqSel).toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 border-t border-dashed border-slate-300 dark:border-slate-600 mb-4">
+                                <span className="font-bold text-lg text-slate-700 dark:text-white">Total a Pagar</span>
+                                <span className="font-black text-2xl text-indigo-600 dark:text-indigo-400 tracking-tight">${(calcularTotalRenta(eqSel) + eqSel.cuenta.reduce((a,x)=>a+(x.precio*(x.cantidad||1)),0)).toFixed(2)}</span>
+                            </div>
+                            <button onClick={() => setModalAbierto('cobrar')} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2">
+                                <Ticket size={18}/> Cobrar Cuenta
+                            </button>
+                        </div>
+                    </div>
                 </div>
              </div>
         </div>
