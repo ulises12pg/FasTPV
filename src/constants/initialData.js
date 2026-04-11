@@ -64,7 +64,8 @@ export const CONFIG_INICIAL = {
         },
         extras: {
             oficio: 1.00, // Se suma
-            tabloide: 2.00 // Se multiplica
+            tabloide: 2.00, // Se multiplica
+            tamanosActivos: { carta: true, oficio: true, tabloide: true }
         },
         otros: {
             escaneo: { carta: 4.00, oficio: 5.00 },

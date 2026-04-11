@@ -190,7 +190,52 @@ export default function ConfigModal() {
                                     ))}
                                 </div>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 border-t dark:border-slate-700 pt-4">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Tamaños de Papel</label>
+                                <p className="text-[10px] text-slate-400 -mt-1 mb-2">Activa o desactiva los tamaños disponibles y configura sus precios extra.</p>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[
+                                        { key: 'carta', label: 'Carta', desc: 'Precio base', editable: false },
+                                        { key: 'oficio', label: 'Oficio', desc: 'Se suma al base', editable: true },
+                                        { key: 'tabloide', label: 'Tabloide', desc: 'Multiplicador', editable: true }
+                                    ].map(tam => {
+                                        const activos = config.precios.extras.tamanosActivos || { carta: true, oficio: true, tabloide: true };
+                                        const isActive = activos[tam.key] !== false;
+                                        return (
+                                            <div key={tam.key} className={`p-3 rounded-xl border-2 transition-all ${isActive ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 dark:border-indigo-500' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 opacity-60'}`}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className={`text-xs font-bold ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-400'}`}>{tam.label}</span>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={isActive} 
+                                                            onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, tamanosActivos: {...activos, [tam.key]: e.target.checked}}}})} 
+                                                            className="sr-only peer" 
+                                                        />
+                                                        <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+                                                    </label>
+                                                </div>
+                                                <p className="text-[9px] text-slate-400 mb-2">{tam.desc}</p>
+                                                {tam.editable ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-[10px] text-slate-400 font-bold">{tam.key === 'oficio' ? '+$' : '×'}</span>
+                                                        <input 
+                                                            type="number" 
+                                                            disabled={!isActive}
+                                                            className="w-full border p-1 rounded text-center text-sm font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white disabled:opacity-40 disabled:cursor-not-allowed" 
+                                                            value={config.precios.extras[tam.key]} 
+                                                            onChange={e => setConfig({...config, precios: {...config.precios, extras: {...config.precios.extras, [tam.key]: parseFloat(e.target.value) || 0}}})} 
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold text-center">Sin costo extra</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="space-y-2 border-t dark:border-slate-700 pt-4">
                                 <label className="text-xs font-bold text-slate-500 uppercase">Servicios Rápidos</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {config.precios.otros.wifi !== undefined && (
