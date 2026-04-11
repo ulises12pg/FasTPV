@@ -24,12 +24,12 @@ export default function VentaDirectaModal() {
         usuarioActual, 
         config, 
         addToast, 
-        playSound 
+        playSound,
+        carritoMostrador: carrito, setCarritoMostrador: setCarrito,
+        clienteMostradorId: clienteId, setClienteMostradorId: setClienteId
     } = useSystem();
 
-    // Estados del Carrito y Venta
-    const [carrito, setCarrito] = useState([]);
-    const [clienteId, setClienteId] = useState(1);
+    // Estados de Venta (transitorios)
     const [pagoCon, setPagoCon] = useState('');
     const [procesando, setProcesando] = useState(false);
     
@@ -48,14 +48,14 @@ export default function VentaDirectaModal() {
     const barcodeBuffer = useRef('');
     const lastKeyTime = useRef(0);
 
-    // Resetear al abrir
+    // Resetear solo UI transitoria al abrir (carrito y cliente persisten)
     useEffect(() => {
         if (modalAbierto === 'venta_directa') {
-            setCarrito([]);
-            setClienteId(1);
             setPagoCon('');
             setBusqueda('');
             setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 });
+            setManualItemForm({ nombre: '', precio: '' });
+            setMostrarNuevoCliente(false);
             setProcesando(false);
         }
     }, [modalAbierto]);
@@ -223,6 +223,9 @@ export default function VentaDirectaModal() {
         setVentas(prev => [...prev, venta]);
         generarTicket(venta, config);
         playSound('success');
+        // Limpiar carrito y cliente tras venta exitosa
+        setCarrito([]);
+        setClienteId(1);
         setModalAbierto(null);
         setProcesando(false);
     };

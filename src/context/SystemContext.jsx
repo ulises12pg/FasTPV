@@ -26,6 +26,10 @@ export const SystemProvider = ({ children }) => {
     const [equipoSeleccionadoId, setEquipoSeleccionadoId] = useState(null);
     const [toasts, setToasts] = useState([]);
     const [modoEdicion, setModoEdicion] = useState(false);
+
+    // Carrito Mostrador (persiste entre aperturas del modal)
+    const [carritoMostrador, setCarritoMostrador] = useState([]);
+    const [clienteMostradorId, setClienteMostradorId] = useState(1);
     
     // --- DARK MODE ---
     const [darkMode, setDarkMode] = useState(() => {
@@ -139,6 +143,8 @@ export const SystemProvider = ({ children }) => {
         toasts, addToast, removeToast,
         darkMode, toggleDarkMode,
         modoEdicion, setModoEdicion,
+        carritoMostrador, setCarritoMostrador,
+        clienteMostradorId, setClienteMostradorId,
         reordenarEquipos,
         resetSistema,
         // Helpers
