@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSystem } from '../../context/SystemContext';
-import { FileText, X, Calculator, Copy, CheckCircle, Info, Landmark } from 'lucide-react';
+import { FileText, X, Calculator, Copy, CheckCircle, Info, Landmark, Download } from 'lucide-react';
+import { exportarSatGuiaPDF } from '../../utils/satPdfGenerator';
 
 export default function FiscalGuideModal() {
     const { modalAbierto, setModalAbierto, ventas, config, addToast } = useSystem();
@@ -57,6 +58,17 @@ export default function FiscalGuideModal() {
         addToast(`${nombreCampo} copiado al portapapeles`, 'success');
     };
 
+    const manejarExportarPDF = () => {
+        try {
+            const datos = tipoGuia === 'global' ? ventasGlobal : { ...pmDatos, montoManual, incluyeIVA };
+            exportarSatGuiaPDF(tipoGuia, datos, config);
+            addToast('PDF generado correctamente', 'success');
+        } catch (error) {
+            console.error(error);
+            addToast('Error al generar PDF', 'error');
+        }
+    };
+
     return (
         <div
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim"
@@ -65,7 +77,16 @@ export default function FiscalGuideModal() {
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden modal-anim border dark:border-slate-700">
                 <div className="bg-purple-700 p-4 text-white flex justify-between items-center shrink-0">
                     <h2 className="font-bold flex items-center gap-2 text-lg"><Landmark /> Guía de Facturación SAT</h2>
-                    <button onClick={() => setModalAbierto(null)} className="hover:bg-purple-600 p-1.5 rounded-full transition-colors"><X size={20} /></button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={manejarExportarPDF}
+                            className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 text-xs transition-all border border-white/20 shadow-sm"
+                            title="Exportar guía actual a PDF"
+                        >
+                            <Download size={14} /> Exportar PDF
+                        </button>
+                        <button onClick={() => setModalAbierto(null)} className="hover:bg-purple-600 p-1.5 rounded-full transition-colors"><X size={20} /></button>
+                    </div>
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b dark:border-slate-700 flex gap-4 shrink-0">
