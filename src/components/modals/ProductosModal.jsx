@@ -208,7 +208,14 @@ export default function ProductosModal() {
              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden modal-anim border border-white/20 dark:border-slate-700">
                 <div className="p-4 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-700">
                     <h2 className="font-bold flex items-center gap-2 text-slate-800 dark:text-white"><ShoppingBag className="text-blue-500" /> {eqSel.nombre}</h2>
-                    <button onClick={() => setModalAbierto(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"><X /></button>
+                    <button 
+                        onClick={() => setModalAbierto(null)} 
+                        className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                        title="La sesión y consumos del equipo siguen activos en segundo plano"
+                    >
+                        <span>Continuar Cuenta Activa</span>
+                        <ChevronRight size={14} />
+                    </button>
                 </div>
                 <div className="flex flex-1 overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="flex-1 flex overflow-hidden mr-1">
