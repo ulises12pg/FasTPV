@@ -25,7 +25,7 @@ export default function ProductosModal() {
     // Estados Locales
     const [busqueda, setBusqueda] = useState('');
     const [servicioForm, setServicioForm] = useState({ 
-        tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 
+        tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 50, cantidad: 1 
     });
     const [manualItemForm, setManualItemForm] = useState({ nombre: '', precio: '' });
 
@@ -37,7 +37,7 @@ export default function ProductosModal() {
     useEffect(() => {
         if (modalAbierto === 'productos') {
             setBusqueda('');
-            setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 });
+            setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 50, cantidad: 1 });
             setManualItemForm({ nombre: '', precio: '' });
         }
     }, [modalAbierto]);
@@ -47,6 +47,13 @@ export default function ProductosModal() {
     const eqSel = equipos.find(e => e.id === equipoSeleccionadoId);
     if (!eqSel) return null;
 
+    // Interpola el precio base según porcentaje de cobertura (0-100)
+    // 0% -> precio B, 50% -> precio M, 100% -> precio G
+    const interpolarPrecioCobertura = (pB, pM, pG, pct) => {
+        if (pct <= 50) return pB + (pM - pB) * (pct / 50);
+        return pM + (pG - pM) * ((pct - 50) / 50);
+    };
+
     // --- Lógica de Precios (Duplicada de VentaDirecta para consistencia) ---
     const calcularPrecio = (tipo, tamano, cobertura, cantidad) => {
         const p = config.precios;
@@ -54,12 +61,14 @@ export default function ProductosModal() {
         const tipoKey = tipo.toLowerCase();
 
         if (tipo === 'IMPRESION_BN') {
-            const base = p.impresion.bn[cobertura] || 0;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            const base = interpolarPrecioCobertura(p.impresion.bn.B, p.impresion.bn.M, p.impresion.bn.G, pct);
             if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
             else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
             else unitario = base;
         } else if (tipo === 'IMPRESION_COLOR') {
-            const base = p.impresion.color[cobertura] || 0;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            const base = interpolarPrecioCobertura(p.impresion.color.B, p.impresion.color.M, p.impresion.color.G, pct);
             if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
             else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
             else unitario = base;
@@ -120,7 +129,8 @@ export default function ProductosModal() {
         if (tipo === 'ENVIO') nombreServicio = `Envío Digital`;
         else if (tipo === 'ESCANEO') nombreServicio = `Escaneo ${tamano}`;
         else if (['IMPRESION_BN', 'IMPRESION_COLOR'].includes(tipo)) {
-            nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${pct}% tinta)`;
         } else {
             nombreServicio = tipoKey.charAt(0).toUpperCase() + tipoKey.slice(1).replace(/_/g, ' ');
         }
@@ -176,6 +186,18 @@ export default function ProductosModal() {
             }
             return eq;
          }));
+    };
+
+    const incrementarCantidadDeCuenta = (uid) => {
+        setEquipos(prev => prev.map(eq => {
+            if (eq.id === equipoSeleccionadoId) {
+                return { ...eq, cuenta: eq.cuenta.map(i => {
+                    if (i.uid === uid) return { ...i, cantidad: (i.cantidad || 1) + 1 };
+                    return i;
+                }) };
+            }
+            return eq;
+        }));
     };
 
     // --- Scanner Effect ---
@@ -314,7 +336,49 @@ export default function ProductosModal() {
                                         </button>
                                     );
                                 })}
-                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (<div className="fade-anim"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1"><Droplet size={12}/> 2. Cobertura de Tinta</label><div className="grid grid-cols-3 gap-2">{[{ id: 'B', label: 'Básica', desc: 'Texto simple', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['B'] }, { id: 'M', label: 'Media', desc: 'Con imágenes', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['M'] }, { id: 'G', label: 'Alta', desc: 'Fotos / Full', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['G'] }].map(cob => (<button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded-lg border text-left transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}><div className="flex justify-between items-center mb-1"><span className={`font-bold text-xs ${servicioForm.cobertura === cob.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>{cob.label}</span><span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-600 px-1.5 rounded text-slate-600 dark:text-slate-300">${cob.price}</span></div><div className="text-[10px] text-slate-400 leading-tight">{cob.desc}</div></button>))}</div></div>)}
+                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (() => {
+                                    const p = config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color'];
+                                    const pct = typeof servicioForm.cobertura === 'number' ? servicioForm.cobertura : 50;
+                                    const precioInterpolado = calcularPrecio(servicioForm.tipo, servicioForm.tamano, pct, 1);
+                                    const pctColor = pct <= 33 ? '#22c55e' : pct <= 66 ? '#f59e0b' : '#ef4444';
+                                    const pctLabel = pct <= 33 ? 'Baja (texto)' : pct <= 66 ? 'Media (imágenes)' : 'Alta (fotos/relleno)';
+                                    return (
+                                        <div className="fade-anim">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                                    <Droplet size={12} style={{ color: pctColor }}/> 2. Cobertura de Tinta
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: pctColor + '20', color: pctColor }}>{pctLabel}</span>
+                                                    <span className="text-sm font-black text-slate-800 dark:text-white">${precioInterpolado.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="relative">
+                                                    <input
+                                                        type="range"
+                                                        min="0" max="100" step="1"
+                                                        value={pct}
+                                                        onChange={e => setServicioForm({...servicioForm, cobertura: parseInt(e.target.value)})}
+                                                        className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                                                        style={{
+                                                            background: `linear-gradient(to right, ${pctColor} 0%, ${pctColor} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`
+                                                        }}
+                                                    />
+                                                    <div className="flex justify-between text-[9px] text-slate-400 font-bold mt-1 px-0.5">
+                                                        <span>0% · ${p.B}</span>
+                                                        <span>50% · ${p.M}</span>
+                                                        <span>100% · ${p.G}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <span className="text-2xl font-black" style={{ color: pctColor }}>{pct}%</span>
+                                                    <span className="text-xs text-slate-400 ml-1">de tinta</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 {servicioForm.tipo !== 'ENVIO' && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && (() => { const activos = config.precios.extras.tamanosActivos || { carta: true, oficio: true, tabloide: true }; const tamanos = ['CARTA', 'OFICIO', 'TABLOIDE'].filter(t => activos[t.toLowerCase()] !== false).filter(t => !(servicioForm.tipo === 'ESCANEO' && t === 'TABLOIDE')); return tamanos.length > 1 ? (<div className="fade-anim delay-75"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">3. Tamaño de Papel</label><div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">{tamanos.map(tam => (<button key={tam} onClick={() => setServicioForm({...servicioForm, tamano: tam})} className={`flex-1 py-2 text-xs rounded-md font-bold transition-all ${servicioForm.tamano === tam ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-300 shadow-sm transform scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>{tam}</button>))}</div></div>) : null; })()}
                                 <div className="bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600"><div className="flex gap-4 items-end mb-3"><div className="w-24"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cantidad</label><input type="number" min="1" className="w-full border-2 border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 p-2 rounded-lg font-bold text-center text-lg focus:border-indigo-500 outline-none dark:text-white" value={servicioForm.cantidad} onChange={e => setServicioForm({...servicioForm, cantidad: parseInt(e.target.value) || 1})} /></div><div className="flex-1 text-right"><div className="text-xs text-slate-400 uppercase font-bold">Total Estimado</div><div className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">${(calcularPrecio(servicioForm.tipo, servicioForm.tamano, servicioForm.cobertura, servicioForm.cantidad) * servicioForm.cantidad).toFixed(2)}</div>{servicioForm.cantidad > 10 && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && <div className="text-[10px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-1">✨ 10% Descuento Mayoreo</div>}</div></div><button onClick={agregarServicioACuenta} className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded-lg font-bold shadow-lg flex justify-center items-center gap-2 transition-all transform active:scale-95"><CheckCircle size={20} className="text-emerald-400"/> Agregar a la Cuenta</button></div>
                                 <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Agregar Cargo Manual</label><div className="flex gap-2"><input className="flex-1 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" placeholder="Concepto (ej. Engargolado)" value={manualItemForm.nombre} onChange={e => setManualItemForm({...manualItemForm, nombre: e.target.value})} /><input className="w-20 border dark:border-slate-600 bg-white dark:bg-slate-800 p-2 rounded text-sm dark:text-white" type="number" placeholder="$" value={manualItemForm.precio} onChange={e => setManualItemForm({...manualItemForm, precio: e.target.value})} /><button onClick={agregarManualACuenta} className="bg-slate-700 text-white px-3 rounded hover:bg-slate-800"><PlusCircle size={18}/></button></div></div>
@@ -346,6 +410,9 @@ export default function ProductosModal() {
                                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                             <button onClick={() => disminuirCantidadDeCuenta(i.uid)} className="p-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Quitar 1">
                                                 <Minus size={14} strokeWidth={3}/>
+                                            </button>
+                                            <button onClick={() => incrementarCantidadDeCuenta(i.uid)} className="p-1.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-md hover:bg-emerald-500 hover:text-white transition-colors shadow-sm" title="Agregar 1">
+                                                <PlusCircle size={14} strokeWidth={3}/>
                                             </button>
                                             <button onClick={() => eliminarProductoDeCuenta(i.uid)} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-md hover:bg-rose-500 hover:text-white transition-colors shadow-sm" title="Quitar todo el conjunto">
                                                 <X size={14} strokeWidth={3}/>

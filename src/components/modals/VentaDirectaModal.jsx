@@ -40,7 +40,7 @@ export default function VentaDirectaModal() {
 
     // Formularios de Servicios y Manuales
     const [servicioForm, setServicioForm] = useState({ 
-        tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 
+        tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 50, cantidad: 1 
     });
     const [manualItemForm, setManualItemForm] = useState({ nombre: '', precio: '' });
 
@@ -53,7 +53,7 @@ export default function VentaDirectaModal() {
         if (modalAbierto === 'venta_directa') {
             setPagoCon('');
             setBusqueda('');
-            setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 'B', cantidad: 1 });
+            setServicioForm({ tipo: 'IMPRESION_BN', tamano: 'CARTA', cobertura: 50, cantidad: 1 });
             setManualItemForm({ nombre: '', precio: '' });
             setMostrarNuevoCliente(false);
             setProcesando(false);
@@ -63,18 +63,27 @@ export default function VentaDirectaModal() {
     if (modalAbierto !== 'venta_directa') return null;
 
     // --- Lógica de Precios (Servicios) ---
+    // Interpola el precio base según porcentaje de cobertura (0-100)
+    // 0% -> precio B, 50% -> precio M, 100% -> precio G
+    const interpolarPrecioCobertura = (pB, pM, pG, pct) => {
+        if (pct <= 50) return pB + (pM - pB) * (pct / 50);
+        return pM + (pG - pM) * ((pct - 50) / 50);
+    };
+
     const calcularPrecioServicio = (tipo, tamano, cobertura, cantidad) => {
         const p = config.precios;
         let unitario = 0;
         const tipoKey = tipo.toLowerCase();
 
         if (tipo === 'IMPRESION_BN') {
-            const base = p.impresion.bn[cobertura] || 0;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            const base = interpolarPrecioCobertura(p.impresion.bn.B, p.impresion.bn.M, p.impresion.bn.G, pct);
             if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
             else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
             else unitario = base;
         } else if (tipo === 'IMPRESION_COLOR') {
-            const base = p.impresion.color[cobertura] || 0;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            const base = interpolarPrecioCobertura(p.impresion.color.B, p.impresion.color.M, p.impresion.color.G, pct);
             if (tamano === 'OFICIO') unitario = base + p.extras.oficio;
             else if (tamano === 'TABLOIDE') unitario = base * p.extras.tabloide;
             else unitario = base;
@@ -112,7 +121,8 @@ export default function VentaDirectaModal() {
         if (tipo === 'ENVIO') nombreServicio = `Envío Digital`;
         else if (tipo === 'ESCANEO') nombreServicio = `Escaneo ${tamano}`;
         else if (['IMPRESION_BN', 'IMPRESION_COLOR'].includes(tipo)) {
-            nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${cobertura})`;
+            const pct = typeof cobertura === 'number' ? cobertura : (cobertura === 'B' ? 0 : cobertura === 'M' ? 50 : 100);
+            nombreServicio = `${tipo === 'IMPRESION_BN' ? 'Imp. B/N' : 'Imp. Color'} ${tamano} (${pct}% tinta)`;
         } else {
             // Servicios planos (WiFi, Asesoría, Personalizados)
             nombreServicio = tipoKey.charAt(0).toUpperCase() + tipoKey.slice(1).replace(/_/g, ' ');
@@ -121,13 +131,13 @@ export default function VentaDirectaModal() {
         const nombreFinal = nombreServicio + (cantidad > 10 && ['IMPRESION_BN', 'IMPRESION_COLOR', 'ESCANEO', 'ENVIO'].includes(tipo) ? ' (-10%)' : '');
 
         setCarrito(prev => {
-            const idx = prev.findIndex(p => p.nombre === nombreFinal && p.precio === parseFloat(precioFinal));
+            const idx = prev.findIndex(p => p.nombre === nombreFinal && p.precio === parseFloat(precioFinal.toFixed(2)));
             if (idx !== -1) {
                 const copia = [...prev];
                 copia[idx] = { ...copia[idx], cantidad: (copia[idx].cantidad || 1) + (parseInt(cantidad) || 1) };
                 return copia;
             }
-            return [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: parseFloat(precioFinal), cantidad: parseInt(cantidad) || 1 }];
+            return [...prev, { uid: Date.now(), idCatalogo: null, nombre: nombreFinal, precio: parseFloat(precioFinal.toFixed(2)), cantidad: parseInt(cantidad) || 1 }];
         });
         setServicioForm({ ...servicioForm, cantidad: 1 });
         playSound('success');
@@ -159,6 +169,13 @@ export default function VentaDirectaModal() {
             if (i.uid === uid) return { ...i, cantidad: (i.cantidad || 1) - 1 };
             return i;
         }).filter(i => i.cantidad > 0));
+    };
+
+    const incrementarCantidad = (uid) => {
+        setCarrito(prev => prev.map(i => {
+            if (i.uid === uid) return { ...i, cantidad: (i.cantidad || 1) + 1 };
+            return i;
+        }));
     };
 
     // --- Gestión de Clientes ---
@@ -404,18 +421,49 @@ export default function VentaDirectaModal() {
                                     })}
                                 </div>
 
-                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (
-                                    <div className="fade-anim">
-                                        <label className="block text-xs font-bold text-slate-500 mb-2">2. Intensidad / Tipo</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {[{ id: 'B', label: 'Básica', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['B'] }, { id: 'M', label: 'Media', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['M'] }, { id: 'G', label: 'Alta', price: config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color']['G'] }].map(cob => (
-                                                <button key={cob.id} onClick={() => setServicioForm({...servicioForm, cobertura: cob.id})} className={`p-2 rounded border text-center text-xs font-bold transition-all ${servicioForm.cobertura === cob.id ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'}`}>
-                                                    {cob.label}<br/><span className="text-slate-400 font-normal">${cob.price}</span>
-                                                </button>
-                                            ))}
+                                {(servicioForm.tipo === 'IMPRESION_BN' || servicioForm.tipo === 'IMPRESION_COLOR') && (() => {
+                                    const p = config.precios.impresion[servicioForm.tipo === 'IMPRESION_BN' ? 'bn' : 'color'];
+                                    const pct = typeof servicioForm.cobertura === 'number' ? servicioForm.cobertura : 50;
+                                    const precioInterpolado = calcularPrecioServicio(servicioForm.tipo, servicioForm.tamano, pct, 1);
+                                    const pctColor = pct <= 33 ? '#22c55e' : pct <= 66 ? '#f59e0b' : '#ef4444';
+                                    const pctLabel = pct <= 33 ? 'Baja (texto)' : pct <= 66 ? 'Media (imágenes)' : 'Alta (fotos/relleno)';
+                                    return (
+                                        <div className="fade-anim">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                                                    <Droplet size={12} style={{ color: pctColor }}/> 2. Cobertura de Tinta
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: pctColor + '20', color: pctColor }}>{pctLabel}</span>
+                                                    <span className="text-sm font-black text-slate-800 dark:text-white">${precioInterpolado.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="relative">
+                                                    <input
+                                                        type="range"
+                                                        min="0" max="100" step="1"
+                                                        value={pct}
+                                                        onChange={e => setServicioForm({...servicioForm, cobertura: parseInt(e.target.value)})}
+                                                        className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                                                        style={{
+                                                            background: `linear-gradient(to right, ${pctColor} 0%, ${pctColor} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`
+                                                        }}
+                                                    />
+                                                    <div className="flex justify-between text-[9px] text-slate-400 font-bold mt-1 px-0.5">
+                                                        <span>0% · ${p.B}</span>
+                                                        <span>50% · ${p.M}</span>
+                                                        <span>100% · ${p.G}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <span className="text-2xl font-black" style={{ color: pctColor }}>{pct}%</span>
+                                                    <span className="text-xs text-slate-400 ml-1">de tinta</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
                                 <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border border-slate-200 dark:border-slate-600">
                                     {servicioForm.tipo !== 'ENVIO' && servicioForm.tipo !== 'WIFI' && servicioForm.tipo !== 'ASESORIA' && (() => { const activos = config.precios.extras.tamanosActivos || { carta: true, oficio: true, tabloide: true }; const tamanos = ['CARTA', 'OFICIO', 'TABLOIDE'].filter(t => activos[t.toLowerCase()] !== false).filter(t => !(servicioForm.tipo === 'ESCANEO' && t === 'TABLOIDE')); return tamanos.length > 1 ? (
                                         <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border dark:border-slate-600 mb-3">
@@ -473,6 +521,9 @@ export default function VentaDirectaModal() {
                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                 <button onClick={() => disminuirCantidad(i.uid)} className="p-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Quitar 1">
                                                     <Minus size={14} strokeWidth={3}/>
+                                                </button>
+                                                <button onClick={() => incrementarCantidad(i.uid)} className="p-1.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-md hover:bg-emerald-500 hover:text-white transition-colors shadow-sm" title="Agregar 1">
+                                                    <PlusCircle size={14} strokeWidth={3}/>
                                                 </button>
                                                 <button onClick={() => eliminarItem(i.uid)} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-md hover:bg-rose-500 hover:text-white transition-colors shadow-sm" title="Quitar todo el conjunto">
                                                     <X size={14} strokeWidth={3}/>
