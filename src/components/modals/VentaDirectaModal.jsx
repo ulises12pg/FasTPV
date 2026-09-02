@@ -456,6 +456,18 @@ export default function VentaDirectaModal() {
                                                         <span>100% · ${p.G}</span>
                                                     </div>
                                                 </div>
+                                                <div className="flex justify-center gap-1.5 mt-1">
+                                                    {[0, 25, 50, 75, 100].map(v => (
+                                                        <button
+                                                            key={v}
+                                                            onClick={() => setServicioForm({...servicioForm, cobertura: v})}
+                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all transform active:scale-95 ${pct === v ? 'text-white shadow-md scale-105' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                                                            style={pct === v ? { backgroundColor: pctColor } : {}}
+                                                        >
+                                                            {v}%
+                                                        </button>
+                                                    ))}
+                                                </div>
                                                 <div className="text-center">
                                                     <span className="text-2xl font-black" style={{ color: pctColor }}>{pct}%</span>
                                                     <span className="text-xs text-slate-400 ml-1">de tinta</span>
