@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSystem } from '../../context/SystemContext';
-import { Package, X, Camera, CameraOff, ScanBarcode, Save, Edit2, Trash2, QrCode, Search } from 'lucide-react';
+import { Package, X, Camera, CameraOff, ScanBarcode, Save, Edit2, Trash2, QrCode, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 export default function InventarioModal() {
@@ -19,6 +19,7 @@ export default function InventarioModal() {
     const [showCamera, setShowCamera] = useState(false);
     const html5QrCodeRef = useRef(null);
     const [busqueda, setBusqueda] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     
     // Refs para Scanner físico (Buffer de teclado)
     const barcodeBuffer = useRef('');
@@ -162,6 +163,51 @@ export default function InventarioModal() {
         setModalAbierto(null);
     };
 
+    const handleSort = (key) => {
+        setSortConfig(prev => {
+            if (prev.key === key) {
+                // Cycle: asc -> desc -> none
+                if (prev.direction === 'asc') return { key, direction: 'desc' };
+                return { key: null, direction: 'asc' };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
+    const SortIndicator = ({ columnKey }) => {
+        if (sortConfig.key !== columnKey) return null;
+        return sortConfig.direction === 'asc' 
+            ? <ChevronUp size={14} className="inline ml-0.5 opacity-70" /> 
+            : <ChevronDown size={14} className="inline ml-0.5 opacity-70" />;
+    };
+
+    const sortedCatalogo = useMemo(() => {
+        const filtered = catalogo.filter(p => 
+            p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
+            (p.codigo && p.codigo.includes(busqueda))
+        );
+        if (!sortConfig.key) return filtered;
+
+        return [...filtered].sort((a, b) => {
+            const key = sortConfig.key;
+            let valA = a[key];
+            let valB = b[key];
+
+            // Numeric columns
+            if (key === 'precio' || key === 'stock') {
+                valA = Number(valA) || 0;
+                valB = Number(valB) || 0;
+                return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+            }
+
+            // String columns (alphabetical)
+            valA = (valA || '').toString().toLowerCase();
+            valB = (valB || '').toString().toLowerCase();
+            const cmp = valA.localeCompare(valB, 'es');
+            return sortConfig.direction === 'asc' ? cmp : -cmp;
+        });
+    }, [catalogo, busqueda, sortConfig]);
+
     return (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-anim">
             <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl modal-anim border dark:border-slate-700 overflow-hidden">
@@ -236,9 +282,9 @@ export default function InventarioModal() {
                         </div>
                         <div className="overflow-y-auto flex-1 custom-scrollbar">
                             <table className="w-full text-sm text-left text-slate-700 dark:text-slate-200">
-                                <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold sticky top-0 shadow-sm z-10"><tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Precio</th><th className="p-3 text-center">Stock</th><th className="p-3 text-center">Acciones</th></tr></thead>
+                                <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold sticky top-0 shadow-sm z-10"><tr><th className="p-3 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onClick={() => handleSort('nombre')}>Producto<SortIndicator columnKey="nombre" /></th><th className="p-3 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onClick={() => handleSort('categoria')}>Categoría<SortIndicator columnKey="categoria" /></th><th className="p-3 cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onClick={() => handleSort('precio')}>Precio<SortIndicator columnKey="precio" /></th><th className="p-3 text-center cursor-pointer select-none hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onClick={() => handleSort('stock')}>Stock<SortIndicator columnKey="stock" /></th><th className="p-3 text-center">Acciones</th></tr></thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {catalogo.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigo && p.codigo.includes(busqueda))).map(p => (
+                                    {sortedCatalogo.map(p => (
                                         <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 group transition-colors">
                                             <td className="p-3 font-medium flex items-center gap-2"><span className="text-lg">{p.icon}</span> <div><div className="font-bold">{p.nombre}</div><div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">{p.codigo ? <><QrCode size={10}/> {p.codigo}</> : 'Sin código'}</div></div></td>
                                             <td className="p-3 text-slate-500 dark:text-slate-400"><span className="bg-slate-100 dark:bg-slate-600 px-2 py-0.5 rounded-full text-xs">{p.categoria}</span></td>
